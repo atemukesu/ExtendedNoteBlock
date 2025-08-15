@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "powered=false": {
+            "model": "extendednoteblock:block/extended_note_block"
+        },
+        "powered=true": {
+            "model": "extendednoteblock:block/extended_note_block_on"
+        }
+    }
+}
