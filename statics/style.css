@@ -1,0 +1,174 @@
+/* --- 1. 全局与重置 --- */
+:root {
+    --bg-color: #f8f9fa;
+    /* 背景色 - 极浅灰 */
+    --text-color: #333;
+    /* 主要文字颜色 - 深灰 */
+    --primary-color: #3a7ca5;
+    /* 主题色/点缀色 - 沉稳蓝 */
+    --secondary-color: #6c757d;
+    /* 次要文字颜色 - 中灰 (比之前稍柔和) */
+    --shape-color: rgba(58, 124, 165, 0.05);
+    /* 几何图形颜色 - 极淡的主题色 */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.7;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* --- 2. 几何背景元素 --- */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    background-color: var(--shape-color);
+    z-index: -1;
+    pointer-events: none;
+}
+
+body::before {
+    width: 40vw;
+    height: 40vw;
+    min-width: 300px;
+    min-height: 300px;
+    top: -15vw;
+    left: -15vw;
+}
+
+body::after {
+    width: 50vw;
+    height: 50vw;
+    min-width: 400px;
+    min-height: 400px;
+    bottom: -20vw;
+    right: -20vw;
+}
+
+/* --- 3. 页面布局 --- */
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex-grow: 1;
+}
+
+/* --- 4. 模块样式 (头部, 关于, 项目, 页脚) --- */
+.header {
+    text-align: center;
+    padding: 80px 0 60px 0;
+}
+
+.header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--primary-color);
+}
+
+.section {
+    margin-bottom: 60px;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--text-color);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--primary-color);
+    display: inline-block;
+}
+
+.about-me p {
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+/* --- 5. 项目列表样式 (已更新) --- */
+.project-list {
+    list-style: none;
+}
+
+.project-item {
+    margin-bottom: 45px;
+    /* 增加项目间距 */
+}
+
+.project-item:last-child {
+    margin-bottom: 0;
+}
+
+.project-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.project-title a {
+    text-decoration: none;
+    color: var(--primary-color);
+    display: inline-block;
+    transition: transform 0.2s ease-out, color 0.2s ease-out;
+}
+
+.project-title a:hover {
+    transform: translateX(5px);
+    color: #2c5d7f;
+    /* 悬停时颜色加深 */
+}
+
+.project-description {
+    font-size: 1rem;
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+    padding-left: 5px;
+    /* 与标题对齐，增加呼吸感 */
+}
+
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    /* 标签之间的间隙 */
+    padding-left: 5px;
+}
+
+.project-tags span {
+    background-color: rgba(58, 124, 165, 0.1);
+    /* 使用极淡的主题色作为背景 */
+    color: var(--primary-color);
+    padding: 4px 12px;
+    border-radius: 15px;
+    /* 胶囊形状 */
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.footer {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
