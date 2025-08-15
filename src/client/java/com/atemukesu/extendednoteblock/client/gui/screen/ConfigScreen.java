@@ -43,7 +43,7 @@ public class ConfigScreen extends Screen {
         this.threadsField.setText(config.threads == null ? "" : config.threads.toString());
         this.addDrawableChild(this.threadsField);
         this.howToUseButton = ButtonWidget.builder(Text.literal("?"), button -> {
-            Util.getOperatingSystem().open("https://atemukesu.github.io/extendednoteblock/docs/howtouse.html");
+            Util.getOperatingSystem().open("https://atemukesu.github.io/ExtendedNoteBlock/docs/howtouse.html");
         }).dimensions(this.ffmpegField.getX() + this.ffmpegField.getWidth() + 4, 60, 20, 20).build();
         this.addDrawableChild(this.howToUseButton);
         this.setInitialFocus(this.ffmpegField);
