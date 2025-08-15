@@ -9,6 +9,7 @@ bin/
 
 # Ignore final compiled mod jars
 *.jar
+!/gradle/wrapper/gradle-wrapper.jar
 
 
 # =================================================================
