@@ -118,7 +118,7 @@
     "gui.extendednoteblock.pack_manager.button.open_folder": "打开音效包文件夹",
     "gui.extendednoteblock.create_pack.button.open_sources_folder": "打开 sf2 源文件夹",
     "gui.extendednoteblock.sustain.value": "持续时间: %d ticks",
-    "gui.extendednoteblock.sustain.info": "(1s = 20 ticks)",
+    "gui.extendednoteblock.sustain.info": "(1s = 20 ticks, 最大400Ticks)",
     "gui.extendednoteblock.piano.key_info": "Key: %s (%d)",
     "gui.extendednoteblock.sustain_ticks": "持续游戏刻",
     "gui.extendednoteblock.rendering.log.info.skipped": "已跳过：%s (文件已存在)",

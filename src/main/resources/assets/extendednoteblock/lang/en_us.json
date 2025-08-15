@@ -118,7 +118,7 @@
     "gui.extendednoteblock.pack_manager.button.open_folder": "Open soundpacks floder",
     "gui.extendednoteblock.create_pack.button.open_sources_folder": "Open SF2 Sources Folder",
     "gui.extendednoteblock.sustain.value": "Sustain: %d ticks",
-    "gui.extendednoteblock.sustain.info": "(1s = 20 ticks)",
+    "gui.extendednoteblock.sustain.info": "(1s = 20 ticks, max 400 ticks)",
     "gui.extendednoteblock.piano.key_info": "Key: %s (%d)",
     "gui.extendednoteblock.sustain_ticks": "Sustain ticks",
     "gui.extendednoteblock.rendering.log.info.skipped": "Skipped: %s (already exists)"

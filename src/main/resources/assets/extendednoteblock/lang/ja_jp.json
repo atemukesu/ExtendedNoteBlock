@@ -118,7 +118,7 @@
     "gui.extendednoteblock.pack_manager.button.open_folder": "サウンドパックフォルダーを開く",
     "gui.extendednoteblock.create_pack.button.open_sources_folder": "sf2ソースフォルダーを開く",
     "gui.extendednoteblock.sustain.value": "持続時間: %d ティック",
-    "gui.extendednoteblock.sustain.info": "(1秒 = 20ティック)",
+    "gui.extendednoteblock.sustain.info": "(1秒 = 20ティック, 最大400ティック)",
     "gui.extendednoteblock.piano.key_info": "キー: %s (%d)",
     "gui.extendednoteblock.sustain_ticks": "持続ゲームティック",
     "gui.extendednoteblock.rendering.log.info.skipped": "スキップ済み：%s (ファイルが既に存在します)",
