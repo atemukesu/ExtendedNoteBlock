@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extended Note Block - 使用教程</title>
+    <!-- 建议在此处链接您的 CSS 文件 -->
     <link rel="stylesheet" href="../statics/style.css">
 </head>
 
@@ -12,410 +13,345 @@
 
     <div class="container">
 
-        <!-- 头部 -->
         <header class="header">
-            <h1>使用教程</h1>
+            <h1>Extended Note Block 使用教程</h1>
         </header>
 
         <main class="main-content">
 
-            <!-- 前置要求 -->
             <section class="section">
                 <h2 class="section-title">前置要求</h2>
-                <p>在启动游戏之前，请先确保您的电脑中安装了 FFmpeg 和 FluidSynth 并正确配置了环境变量。这些工具是生成音频资源所必需的，没有它们，扩展音符盒将无法正常工作。</p>
+                <p>在启动游戏前，请务必确保您的计算机已正确安装 FFmpeg 和 FluidSynth，并已将它们配置到系统的环境变量中。这两个工具是生成音频资源所必需的，缺少它们将导致本模组无法正常工作。</p>
             </section>
 
-            <!-- 安装FFmpeg -->
             <section class="section">
                 <h2 class="section-title">安装与配置 FFmpeg</h2>
-                
-                <h3 class="project-title">Windows 系统</h3>
-                <ol class="project-list">
-                    <li class="project-item">
-                        访问 <a href="https://ffmpeg.org/download.html" target="_blank">FFmpeg 官方网站</a>，在"Get packages & executable files"部分找到适合 Windows 的版本（推荐从gyan.dev或BtbN的链接下载）
-                    </li>
-                    <li class="project-item">
-                        下载后得到一个压缩包（通常是.zip或.7z格式），右键点击压缩包，选择"解压到当前文件夹"或"解压到ffmpeg-xxx"（xxx是版本号）
-                    </li>
-                    <li class="project-item">
-                        解压完成后，将整个文件夹移动到一个简单的位置，比如直接放在C盘根目录下（示例路径：<code>C:\ffmpeg</code>）。<strong>注意：路径中不要有中文或空格，否则可能出错</strong>
-                    </li>
-                    <li class="project-item">
-                        记住该文件夹中<code>bin</code>文件夹的完整路径（示例：<code>C:\ffmpeg\bin</code>），稍后会用到
-                    </li>
-                    <li class="project-item">
+
+                <h3>Windows 系统</h3>
+                <ol class="step-list">
+                    <li>访问 <a href="https://ffmpeg.org/download.html" target="_blank">FFmpeg 官方网站</a>，在 Windows 图标下找到推荐的下载链接（如 gyan.dev 或 BtbN）。</li>
+                    <li>下载最新版本的压缩包（通常为 `.zip` 或 `.7z` 格式）并解压。</li>
+                    <li>将解压后的文件夹移动到一个简洁的路径，例如 <code>C:\ffmpeg</code>。<strong>注意：路径中请勿包含中文或空格，以防意外错误。</strong></li>
+                    <li>记住该文件夹中 <code>bin</code> 目录的完整路径，例如 <code>C:\ffmpeg\bin</code>。</li>
+                    <li>
                         配置环境变量：
                         <ul>
-                            <li>按下键盘上的 <code>Win + E</code> 打开文件资源管理器</li>
-                            <li>在左侧导航栏找到"此电脑"，右键点击它，选择"属性"</li>
-                            <li>在打开的窗口中，点击右侧的"高级系统设置"（如果看不到，可能需要先点击右上角的"系统信息"）</li>
-                            <li>在弹出的"系统属性"窗口中，点击下方的"环境变量"按钮</li>
-                            <li>在新窗口的"系统变量"区域中，找到名为"Path"的变量，点击它然后选择"编辑"</li>
-                            <li>在"编辑环境变量"窗口中，点击"新建"按钮</li>
-                            <li>粘贴之前记住的<code>bin</code>文件夹路径（例如<code>C:\ffmpeg\bin</code>），然后点击"确定"</li>
-                            <li>连续点击所有打开窗口的"确定"按钮，保存设置</li>
+                            <li>右键点击“此电脑” → “属性” → “高级系统设置” → “环境变量”。</li>
+                            <li>在“系统变量”区域中，找到并选中名为“Path”的变量，然后点击“编辑”。</li>
+                            <li>在编辑窗口中，点击“新建”，然后粘贴您刚刚记住的 <code>bin</code> 目录路径 (<code>C:\ffmpeg\bin</code>)。</li>
+                            <li>一路点击“确定”保存所有设置。</li>
                         </ul>
                     </li>
-                    <li class="project-item">
-                        验证安装是否成功：
-                        <ul>
-                            <li>按下 <code>Win + R</code>，输入<code>cmd</code>后按回车，打开命令提示符窗口</li>
-                            <li>在窗口中输入<code>ffmpeg -version</code>并按回车</li>
-                            <li>如果显示了FFmpeg的版本信息（不是"不是内部或外部命令"），则安装成功</li>
-                        </ul>
-                    </li>
-                </ol>
-                
-                <h3 class="project-title">macOS 系统</h3>
-                <ol class="project-list">
-                    <li class="project-item">
-                        首先需要安装Homebrew（如果没有的话）：
-                        <ul>
-                            <li>打开"终端"应用（可以在启动台的"其他"文件夹中找到）</li>
-                            <li>复制粘贴以下命令并按回车：<code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></li>
-                            <li>按照提示完成安装，可能需要输入电脑密码</li>
-                        </ul>
-                    </li>
-                    <li class="project-item">
-                        安装FFmpeg：在终端中输入<code>brew install ffmpeg</code>并按回车，等待安装完成
-                    </li>
-                    <li class="project-item">
-                        验证安装：输入<code>ffmpeg -version</code>，如果显示版本信息则安装成功
-                    </li>
-                </ol>
-                
-                <h3 class="project-title">Linux 系统</h3>
-                <ol class="project-list">
-                    <li class="project-item">
-                        打开终端（通常可以用<code>Ctrl + Alt + T</code>快捷键）
-                    </li>
-                    <li class="project-item">
-                        根据您的Linux发行版输入相应命令：
-                        <ul>
-                            <li>Ubuntu/Debian：<code>sudo apt update && sudo apt install ffmpeg</code></li>
-                            <li>Fedora/RHEL：<code>sudo dnf install ffmpeg</code></li>
-                            <li>Arch Linux：<code>sudo pacman -S ffmpeg</code></li>
-                        </ul>
-                    </li>
-                    <li class="project-item">
-                        输入密码（终端输入密码时不会显示字符，输入完成按回车即可）
-                    </li>
-                    <li class="project-item">
-                        验证安装：输入<code>ffmpeg -version</code>，如果显示版本信息则安装成功
-                    </li>
-                </ol>
-            </section>
-
-            <!-- 安装FluidSynth -->
-            <section class="section">
-                <h2 class="section-title">安装与配置 FluidSynth</h2>
-                
-                <h3 class="project-title">Windows 系统</h3>
-                <ol class="project-list">
-                    <li class="project-item">
-                        访问 <a href="https://github.com/FluidSynth/fluidsynth/releases" target="_blank">FluidSynth 发布页</a>，
-                    </li>
-                    <li class="project-item">
-                        在Assets中下载适合Windows系统的最新版本（通常是zip格式的压缩包）
-                    </li>
-                    <li class="project-item">
-                        解压压缩包到一个简单路径，例如<code>C:\fluidsynth</code>（同样避免中文和空格）
-                    </li>
-                    <li class="project-item">
-                        找到并记住<code>bin</code>文件夹的路径（示例：<code>C:\fluidsynth\bin</code>）
-                    </li>
-                    <li class="project-item">
-                        配置环境变量（步骤与FFmpeg相同）：
-                        <ul>
-                            <li>通过"此电脑"→"属性"→"高级系统设置"→"环境变量"</li>
-                            <li>在"系统变量"中找到"Path"并编辑</li>
-                            <li>点击"新建"，粘贴FluidSynth的<code>bin</code>文件夹路径</li>
-                            <li>保存所有设置</li>
-                        </ul>
-                    </li>
-                    <li class="project-item">
+                    <li>
                         验证安装：
                         <ul>
-                            <li>打开命令提示符（<code>Win + R</code>→输入<code>cmd</code>→回车）</li>
-                            <li>输入<code>fluidsynth --version</code>并按回车</li>
-                            <li>显示版本信息则安装成功</li>
+                            <li>按下 <code>Win + R</code> 键，输入 <code>cmd</code> 并回车，打开命令提示符。</li>
+                            <li>输入 <code>ffmpeg -version</code> 并回车。如果显示出版本信息而非错误提示，则表示安装成功。</li>
                         </ul>
                     </li>
                 </ol>
-                
-                <h3 class="project-title">macOS 系统</h3>
-                <ol class="project-list">
-                    <li class="project-item">
-                        打开终端，确保已安装Homebrew（安装方法见FFmpeg部分）
-                    </li>
-                    <li class="project-item">
-                        输入命令：<code>brew install fluidsynth</code>并按回车
-                    </li>
-                    <li class="project-item">
-                        验证安装：输入<code>fluidsynth --version</code>，显示版本信息则成功
-                    </li>
-                </ol>
-                
-                <h3 class="project-title">Linux 系统</h3>
-                <ol class="project-list">
-                    <li class="project-item">
-                        打开终端
-                    </li>
-                    <li class="project-item">
-                        根据发行版输入命令：
+
+                <h3>macOS 系统</h3>
+                <ol class="step-list">
+                    <li>
+                        首先，安装 Homebrew（若尚未安装）：
                         <ul>
-                            <li>Ubuntu/Debian：<code>sudo apt install fluidsynth</code></li>
-                            <li>Fedora/RHEL：<code>sudo dnf install fluidsynth</code></li>
-                            <li>Arch Linux：<code>sudo pacman -S fluidsynth</code></li>
+                            <li>打开“终端”应用。</li>
+                            <li>粘贴并执行命令：<code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></li>
+                            <li>根据提示完成安装过程。</li>
                         </ul>
                     </li>
-                    <li class="project-item">
-                        验证安装：输入<code>fluidsynth --version</code>，显示版本信息则成功
+                    <li>在终端中执行 <code>brew install ffmpeg</code> 命令安装 FFmpeg。</li>
+                    <li>验证安装：输入 <code>ffmpeg -version</code>，看到版本信息即表示成功。</li>
+                </ol>
+
+                <h3>Linux 系统</h3>
+                <ol class="step-list">
+                    <li>打开终端。</li>
+                    <li>
+                        根据您的发行版，执行相应的安装命令：
+                        <ul>
+                            <li><strong>Ubuntu/Debian:</strong> <code>sudo apt update && sudo apt install ffmpeg</code></li>
+                            <li><strong>Fedora/RHEL:</strong> <code>sudo dnf install ffmpeg</code></li>
+                            <li><strong>Arch Linux:</strong> <code>sudo pacman -S ffmpeg</code></li>
+                        </ul>
                     </li>
+                    <li>验证安装：输入 <code>ffmpeg -version</code>，看到版本信息即表示成功。</li>
                 </ol>
             </section>
 
-            <!-- 渲染核心数设置 -->
+            <section class="section">
+                <h2 class="section-title">安装与配置 FluidSynth</h2>
+
+                <h3>Windows 系统</h3>
+                <ol class="step-list">
+                    <li>访问 <a href="https://github.com/FluidSynth/fluidsynth/releases" target="_blank">FluidSynth 的 GitHub 发布页</a>。</li>
+                    <li>在最新的发布版本下，找到并下载适用于 Windows 的压缩包。</li>
+                    <li>解压并将其移动到简洁的路径，例如 <code>C:\fluidsynth</code>。</li>
+                    <li>按照与 FFmpeg 完全相同的步骤，将 FluidSynth 的 <code>bin</code> 目录路径（例如 <code>C:\fluidsynth\bin</code>）添加到系统的“Path”环境变量中。</li>
+                    <li>
+                        验证安装：
+                        <ul>
+                            <li>打开新的命令提示符窗口。</li>
+                            <li>输入 <code>fluidsynth --version</code> 并回车。显示版本信息即表示安装成功。</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <h3>macOS 系统</h3>
+                <ol class="step-list">
+                    <li>打开终端，确保已安装 Homebrew。</li>
+                    <li>执行命令：<code>brew install fluidsynth</code>。</li>
+                    <li>验证安装：输入 <code>fluidsynth --version</code>。</li>
+                </ol>
+
+                <h3>Linux 系统</h3>
+                <ol class="step-list">
+                    <li>打开终端。</li>
+                    <li>
+                        根据您的发行版，执行相应的安装命令：
+                        <ul>
+                            <li><strong>Ubuntu/Debian:</strong> <code>sudo apt install fluidsynth</code></li>
+                            <li><strong>Fedora/RHEL:</strong> <code>sudo dnf install fluidsynth</code></li>
+                            <li><strong>Arch Linux:</strong> <code>sudo pacman -S fluidsynth</code></li>
+                        </ul>
+                    </li>
+                    <li>验证安装：输入 <code>fluidsynth --version</code>。</li>
+                </ol>
+            </section>
+
             <section class="section">
                 <h2 class="section-title">渲染核心数设置</h2>
-                
-                <p>在配置界面中，您需要设置渲染线程数量，以下是一些建议：</p>
-                
-                <ul class="project-list">
-                    <li class="project-item">建议设置为不超过您电脑的 CPU 核心数</li>
-                    <li class="project-item">对于 4 核 CPU，建议设置为 2-3 线程</li>
-                    <li class="project-item">对于 8 核 CPU，建议设置为 4-6 线程</li>
-                    <li class="project-item">线程数过高可能导致系统卡顿，但会加快渲染速度</li>
-                    <li class="project-item">线程数过低会减慢渲染速度，但不会影响系统稳定性</li>
+                <p>在模组的配置界面中，您需要设置用于音频渲染的线程数量。以下是一些通用建议：</p>
+                <ul class="info-list">
+                    <li>建议设置为您计算机 CPU 逻辑核心数的一半左右，但不超过总核心数。</li>
+                    <li>对于 4 核 CPU，建议设置为 2-3。</li>
+                    <li>对于 8 核 CPU，建议设置为 4-6。</li>
+                    <li>设置过高的线程数可能会加快渲染速度，但可能导致系统卡顿。</li>
+                    <li>设置过低的线程数会减慢渲染速度，但能保证系统稳定性。</li>
                 </ul>
-                
-                <p>首次渲染可能需要较长时间（数分钟到数十分钟），请耐心等待。渲染完成后，您就可以正常使用扩展音符盒了。</p>
+                <p>首次加载时，模组需要进行音频资源渲染，这可能需要数分钟到数十分钟不等，具体取决于您的 CPU 性能和线程数设置，请耐心等待。渲染完成后，即可正常使用。</p>
             </section>
 
-            <!-- 方块与乐器对应关系 -->
             <section class="section">
                 <h2 class="section-title">方块与乐器对应关系</h2>
-                
-                <p>扩展音符盒下方放置不同的方块会默认映射到对应的GM乐器（可在界面中手动更改），完整对应关系如下：</p>
-                
-                <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
-                    <thead>
-                        <tr style="background-color: var(--shape-color);">
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">方块ID</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">游戏内方块</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">对应乐器</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:dirt</td><td style="border: 1px solid #ddd; padding: 8px;">泥土</td><td style="border: 1px solid #ddd; padding: 8px;">Acoustic Grand Piano（声学大钢琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:coarse_dirt</td><td style="border: 1px solid #ddd; padding: 8px;">粗泥土</td><td style="border: 1px solid #ddd; padding: 8px;">Bright Acoustic Piano（明亮声学钢琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:podzol</td><td style="border: 1px solid #ddd; padding: 8px;">灰化土</td><td style="border: 1px solid #ddd; padding: 8px;">Electric Grand Piano（电钢琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:rooted_dirt</td><td style="border: 1px solid #ddd; padding: 8px;">植根泥土</td><td style="border: 1px solid #ddd; padding: 8px;">Honky-tonk Piano（酒吧钢琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:clay</td><td style="border: 1px solid #ddd; padding: 8px;">黏土</td><td style="border: 1px solid #ddd; padding: 8px;">Electric Piano 1（电钢琴1）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:terracotta</td><td style="border: 1px solid #ddd; padding: 8px;">陶瓦</td><td style="border: 1px solid #ddd; padding: 8px;">Electric Piano 2（电钢琴2）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:moss_block</td><td style="border: 1px solid #ddd; padding: 8px;">苔藓块</td><td style="border: 1px solid #ddd; padding: 8px;">Harpsichord（大键琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:red_nether_bricks</td><td style="border: 1px solid #ddd; padding: 8px;">红色地狱砖</td><td style="border: 1px solid #ddd; padding: 8px;">Clavinet（击弦古钢琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:light_blue_concrete</td><td style="border: 1px solid #ddd; padding: 8px;">浅蓝色混凝土</td><td style="border: 1px solid #ddd; padding: 8px;">Celesta（钢片琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:polished_diorite</td><td style="border: 1px solid #ddd; padding: 8px;">磨制闪长岩</td><td style="border: 1px solid #ddd; padding: 8px;">Glockenspiel（钟琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:amethyst_block</td><td style="border: 1px solid #ddd; padding: 8px;">紫水晶块</td><td style="border: 1px solid #ddd; padding: 8px;">Music Box（音乐盒）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:iron_block</td><td style="border: 1px solid #ddd; padding: 8px;">铁块</td><td style="border: 1px solid #ddd; padding: 8px;">Vibraphone（颤音琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:oak_planks</td><td style="border: 1px solid #ddd; padding: 8px;">橡木木板</td><td style="border: 1px solid #ddd; padding: 8px;">Marimba（马林巴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:bone_block</td><td style="border: 1px solid #ddd; padding: 8px;">骨块</td><td style="border: 1px solid #ddd; padding: 8px;">Xylophone（木琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:gold_block</td><td style="border: 1px solid #ddd; padding: 8px;">金块</td><td style="border: 1px solid #ddd; padding: 8px;">Tubular Bells（管钟）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:hay_block</td><td style="border: 1px solid #ddd; padding: 8px;">干草块</td><td style="border: 1px solid #ddd; padding: 8px;">Dulcimer（扬琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:beehive</td><td style="border: 1px solid #ddd; padding: 8px;">蜂箱</td><td style="border: 1px solid #ddd; padding: 8px;">Drawbar Organ（拉杆风琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:dried_kelp_block</td><td style="border: 1px solid #ddd; padding: 8px;">干海带块</td><td style="border: 1px solid #ddd; padding: 8px;">Percussive Organ（打击式风琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:netherrack</td><td style="border: 1px solid #ddd; padding: 8px;">地狱岩</td><td style="border: 1px solid #ddd; padding: 8px;">Rock Organ（摇滚风琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:quartz_block</td><td style="border: 1px solid #ddd; padding: 8px;">石英块</td><td style="border: 1px solid #ddd; padding: 8px;">Church Organ（教堂风琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:mushroom_stem</td><td style="border: 1px solid #ddd; padding: 8px;">蘑菇柄</td><td style="border: 1px solid #ddd; padding: 8px;">Reed Organ（簧风琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:bookshelf</td><td style="border: 1px solid #ddd; padding: 8px;">书架</td><td style="border: 1px solid #ddd; padding: 8px;">Accordion（手风琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:bricks</td><td style="border: 1px solid #ddd; padding: 8px;">砖块</td><td style="border: 1px solid #ddd; padding: 8px;">Harmonica（口琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:mud_bricks</td><td style="border: 1px solid #ddd; padding: 8px;">泥砖</td><td style="border: 1px solid #ddd; padding: 8px;">Tango Accordion（探戈手风琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:oak_log</td><td style="border: 1px solid #ddd; padding: 8px;">橡木原木</td><td style="border: 1px solid #ddd; padding: 8px;">Acoustic Guitar (nylon)（尼龙弦木吉他）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:white_wool</td><td style="border: 1px solid #ddd; padding: 8px;">白色羊毛</td><td style="border: 1px solid #ddd; padding: 8px;">Acoustic Guitar (steel)（钢弦木吉他）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:shroomlight</td><td style="border: 1px solid #ddd; padding: 8px;">菌光体</td><td style="border: 1px solid #ddd; padding: 8px;">Electric Guitar (jazz)（爵士电吉他）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:sea_lantern</td><td style="border: 1px solid #ddd; padding: 8px;">海晶灯</td><td style="border: 1px solid #ddd; padding: 8px;">Electric Guitar (clean)（清音电吉他）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:soul_sand</td><td style="border: 1px solid #ddd; padding: 8px;">灵魂沙</td><td style="border: 1px solid #ddd; padding: 8px;">Electric Guitar (muted)（闷音电吉他）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:blackstone</td><td style="border: 1px solid #ddd; padding: 8px;">黑石</td><td style="border: 1px solid #ddd; padding: 8px;">Overdriven Guitar（过载吉他）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:obsidian</td><td style="border: 1px solid #ddd; padding: 8px;">黑曜石</td><td style="border: 1px solid #ddd; padding: 8px;">Distortion Guitar（失真吉他）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:glass</td><td style="border: 1px solid #ddd; padding: 8px;">玻璃</td><td style="border: 1px solid #ddd; padding: 8px;">Guitar Harmonics（吉他泛音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:oak_wood</td><td style="border: 1px solid #ddd; padding: 8px;">橡木</td><td style="border: 1px solid #ddd; padding: 8px;">Acoustic Bass（原声贝司）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:spruce_planks</td><td style="border: 1px solid #ddd; padding: 8px;">云杉木板</td><td style="border: 1px solid #ddd; padding: 8px;">Electric Bass (finger)（指弹电贝司）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:birch_planks</td><td style="border: 1px solid #ddd; padding: 8px;">白桦木板</td><td style="border: 1px solid #ddd; padding: 8px;">Electric Bass (pick)（拨片电贝司）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:jungle_planks</td><td style="border: 1px solid #ddd; padding: 8px;">丛林木板</td><td style="border: 1px solid #ddd; padding: 8px;">Fretless Bass（无品贝司）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:acacia_planks</td><td style="border: 1px solid #ddd; padding: 8px;">金合欢木板</td><td style="border: 1px solid #ddd; padding: 8px;">Slap Bass 1（击弦贝司1）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:dark_oak_planks</td><td style="border: 1px solid #ddd; padding: 8px;">深色橡木木板</td><td style="border: 1px solid #ddd; padding: 8px;">Slap Bass 2（击弦贝司2）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:purpur_block</td><td style="border: 1px solid #ddd; padding: 8px;">紫珀块</td><td style="border: 1px solid #ddd; padding: 8px;">Synth Bass 1（合成贝司1）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:purpur_pillar</td><td style="border: 1px solid #ddd; padding: 8px;">紫珀柱</td><td style="border: 1px solid #ddd; padding: 8px;">Synth Bass 2（合成贝司2）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:cherry_planks</td><td style="border: 1px solid #ddd; padding: 8px;">樱花木板</td><td style="border: 1px solid #ddd; padding: 8px;">Violin（小提琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:mangrove_planks</td><td style="border: 1px solid #ddd; padding: 8px;">红树木板</td><td style="border: 1px solid #ddd; padding: 8px;">Viola（中提琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:crimson_planks</td><td style="border: 1px solid #ddd; padding: 8px;">绯红木板</td><td style="border: 1px solid #ddd; padding: 8px;">Cello（大提琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:warped_planks</td><td style="border: 1px solid #ddd; padding: 8px;">扭曲木板</td><td style="border: 1px solid #ddd; padding: 8px;">Contrabass（低音提琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:chiseled_stone_bricks</td><td style="border: 1px solid #ddd; padding: 8px;">錾制石砖</td><td style="border: 1px solid #ddd; padding: 8px;">Tremolo Strings（颤音弦乐）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:melon_block</td><td style="border: 1px solid #ddd; padding: 8px;">西瓜块</td><td style="border: 1px solid #ddd; padding: 8px;">Pizzicato Strings（拨弦弦乐）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:smooth_sandstone</td><td style="border: 1px solid #ddd; padding: 8px;">平滑砂岩</td><td style="border: 1px solid #ddd; padding: 8px;">Orchestral Harp（管弦乐竖琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:stone</td><td style="border: 1px solid #ddd; padding: 8px;">石头</td><td style="border: 1px solid #ddd; padding: 8px;">Timpani（定音鼓）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:calcite</td><td style="border: 1px solid #ddd; padding: 8px;">方解石</td><td style="border: 1px solid #ddd; padding: 8px;">String Ensemble 1（弦乐合奏1）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:light_gray_wool</td><td style="border: 1px solid #ddd; padding: 8px;">浅灰色羊毛</td><td style="border: 1px solid #ddd; padding: 8px;">String Ensemble 2（弦乐合奏2）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:end_stone</td><td style="border: 1px solid #ddd; padding: 8px;">末地石</td><td style="border: 1px solid #ddd; padding: 8px;">Synth Strings 1（合成弦乐1）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:end_stone_bricks</td><td style="border: 1px solid #ddd; padding: 8px;">末地石砖</td><td style="border: 1px solid #ddd; padding: 8px;">Synth Strings 2（合成弦乐2）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:soul_soil</td><td style="border: 1px solid #ddd; padding: 8px;">灵魂土</td><td style="border: 1px solid #ddd; padding: 8px;">Choir Aahs（合唱啊声）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:cyan_wool</td><td style="border: 1px solid #ddd; padding: 8px;">青色羊毛</td><td style="border: 1px solid #ddd; padding: 8px;">Voice Oohs（ voices 哦声）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:sculk</td><td style="border: 1px solid #ddd; padding: 8px;">幽匿块</td><td style="border: 1px solid #ddd; padding: 8px;">Synth Voice（合成人声）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:ancient_debris</td><td style="border: 1px solid #ddd; padding: 8px;">远古残骸</td><td style="border: 1px solid #ddd; padding: 8px;">Orchestra Hit（管弦乐敲击）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:waxed_cut_copper</td><td style="border: 1px solid #ddd; padding: 8px;">涂蜡切制铜块</td><td style="border: 1px solid #ddd; padding: 8px;">Trumpet（小号）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:waxed_exposed_cut_copper</td><td style="border: 1px solid #ddd; padding: 8px;">涂蜡暴露的切制铜块</td><td style="border: 1px solid #ddd; padding: 8px;">Trombone（长号）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:waxed_copper_block</td><td style="border: 1px solid #ddd; padding: 8px;">涂蜡铜块</td><td style="border: 1px solid #ddd; padding: 8px;">Tuba（大号）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:waxed_cut_copper</td><td style="border: 1px solid #ddd; padding: 8px;">涂蜡切制铜块</td><td style="border: 1px solid #ddd; padding: 8px;">Muted Trumpet（弱音小号）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:copper_ore</td><td style="border: 1px solid #ddd; padding: 8px;">铜矿</td><td style="border: 1px solid #ddd; padding: 8px;">French Horn（圆号）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:waxed_oxidized_copper</td><td style="border: 1px solid #ddd; padding: 8px;">涂蜡氧化的铜块</td><td style="border: 1px solid #ddd; padding: 8px;">Brass Section（铜管合奏）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:diamond_block</td><td style="border: 1px solid #ddd; padding: 8px;">钻石块</td><td style="border: 1px solid #ddd; padding: 8px;">Synth Brass 1（合成铜管1）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:diamond_ore</td><td style="border: 1px solid #ddd; padding: 8px;">钻石矿</td><td style="border: 1px solid #ddd; padding: 8px;">Synth Brass 2（合成铜管2）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:yellow_terracotta</td><td style="border: 1px solid #ddd; padding: 8px;">黄色陶瓦</td><td style="border: 1px solid #ddd; padding: 8px;">Soprano Sax（高音萨克斯）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:orange_terracotta</td><td style="border: 1px solid #ddd; padding: 8px;">橙色陶瓦</td><td style="border: 1px solid #ddd; padding: 8px;">Alto Sax（中音萨克斯）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:red_terracotta</td><td style="border: 1px solid #ddd; padding: 8px;">红色陶瓦</td><td style="border: 1px solid #ddd; padding: 8px;">Tenor Sax（次中音萨克斯）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:brown_terracotta</td><td style="border: 1px solid #ddd; padding: 8px;">棕色陶瓦</td><td style="border: 1px solid #ddd; padding: 8px;">Baritone Sax（上低音萨克斯）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:white_concrete</td><td style="border: 1px solid #ddd; padding: 8px;">白色混凝土</td><td style="border: 1px solid #ddd; padding: 8px;">Oboe（双簧管）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:light_gray_concrete</td><td style="border: 1px solid #ddd; padding: 8px;">浅灰色混凝土</td><td style="border: 1px solid #ddd; padding: 8px;">English Horn（英国管）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:gray_concrete</td><td style="border: 1px solid #ddd; padding: 8px;">灰色混凝土</td><td style="border: 1px solid #ddd; padding: 8px;">Bassoon（巴松管）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:black_concrete</td><td style="border: 1px solid #ddd; padding: 8px;">黑色混凝土</td><td style="border: 1px solid #ddd; padding: 8px;">Clarinet（单簧管）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:stripped_spruce_log</td><td style="border: 1px solid #ddd; padding: 8px;">去皮云杉原木</td><td style="border: 1px solid #ddd; padding: 8px;">Piccolo（短笛）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:bamboo_planks</td><td style="border: 1px solid #ddd; padding: 8px;">竹木板</td><td style="border: 1px solid #ddd; padding: 8px;">Flute（长笛）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:bamboo_block</td><td style="border: 1px solid #ddd; padding: 8px;">竹块</td><td style="border: 1px solid #ddd; padding: 8px;">Recorder（竖笛）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:stripped_bamboo_block</td><td style="border: 1px solid #ddd; padding: 8px;">去皮竹块</td><td style="border: 1px solid #ddd; padding: 8px;">Pan Flute（排箫）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:tinted_glass</td><td style="border: 1px solid #ddd; padding: 8px;">染色玻璃</td><td style="border: 1px solid #ddd; padding: 8px;">Blown Bottle（吹瓶）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:cherry_log</td><td style="border: 1px solid #ddd; padding: 8px;">樱花原木</td><td style="border: 1px solid #ddd; padding: 8px;">Shakuhachi（尺八）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:iron_bars</td><td style="border: 1px solid #ddd; padding: 8px;">铁栏杆</td><td style="border: 1px solid #ddd; padding: 8px;">Whistle（口哨）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:mud_bricks</td><td style="border: 1px solid #ddd; padding: 8px;">泥砖</td><td style="border: 1px solid #ddd; padding: 8px;">Ocarina（陶笛）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:emerald_block</td><td style="border: 1px solid #ddd; padding: 8px;">绿宝石块</td><td style="border: 1px solid #ddd; padding: 8px;">Lead 1 (square)（主音1（方波））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:emerald_ore</td><td style="border: 1px solid #ddd; padding: 8px;">绿宝石矿</td><td style="border: 1px solid #ddd; padding: 8px;">Lead 2 (sawtooth)（主音2（锯齿波））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:lapis_block</td><td style="border: 1px solid #ddd; padding: 8px;">青金石块</td><td style="border: 1px solid #ddd; padding: 8px;">Lead 3 (calliope)（主音3（汽笛风琴））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:lapis_ore</td><td style="border: 1px solid #ddd; padding: 8px;">青金石矿</td><td style="border: 1px solid #ddd; padding: 8px;">Lead 4 (chiff)（主音4（ chiff ））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:purple_glazed_terracotta</td><td style="border: 1px solid #ddd; padding: 8px;">紫色釉陶</td><td style="border: 1px solid #ddd; padding: 8px;">Lead 5 (charang)（主音5（ charang ））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:magenta_glazed_terracotta</td><td style="border: 1px solid #ddd; padding: 8px;">品红色釉陶</td><td style="border: 1px solid #ddd; padding: 8px;">Lead 6 (voice)（主音6（人声））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:cyan_glazed_terracotta</td><td style="border: 1px solid #ddd; padding: 8px;">青色釉陶</td><td style="border: 1px solid #ddd; padding: 8px;">Lead 7 (fifths)（主音7（五度））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:blue_glazed_terracotta</td><td style="border: 1px solid #ddd; padding: 8px;">蓝色釉陶</td><td style="border: 1px solid #ddd; padding: 8px;">Lead 8 (bass + lead)（主音8（贝司+主音））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:ochre_froglight</td><td style="border: 1px solid #ddd; padding: 8px;">赭石色蛙明灯</td><td style="border: 1px solid #ddd; padding: 8px;">Pad 1 (new age)（衬底1（新世纪））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:glowstone</td><td style="border: 1px solid #ddd; padding: 8px;">荧石</td><td style="border: 1px solid #ddd; padding: 8px;">Pad 2 (warm)（衬底2（温暖））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:verdant_froglight</td><td style="border: 1px solid #ddd; padding: 8px;">翠绿色蛙明灯</td><td style="border: 1px solid #ddd; padding: 8px;">Pad 3 (polysynth)（衬底3（复音合成））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:crying_obsidian</td><td style="border: 1px solid #ddd; padding: 8px;">哭泣的黑曜石</td><td style="border: 1px solid #ddd; padding: 8px;">Pad 4 (choir)（衬底4（合唱团））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:white_stained_glass</td><td style="border: 1px solid #ddd; padding: 8px;">白色染色玻璃</td><td style="border: 1px solid #ddd; padding: 8px;">Pad 5 (bowed)（衬底5（拉弦））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:netherite_block</td><td style="border: 1px solid #ddd; padding: 8px;">下界合金块</td><td style="border: 1px solid #ddd; padding: 8px;">Pad 6 (metallic)（衬底6（金属感））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:beacon</td><td style="border: 1px solid #ddd; padding: 8px;">信标</td><td style="border: 1px solid #ddd; padding: 8px;">Pad 7 (halo)（衬底7（光环））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:pink_wool</td><td style="border: 1px solid #ddd; padding: 8px;">粉色羊毛</td><td style="border: 1px solid #ddd; padding: 8px;">Pad 8 (sweep)（衬底8（滑音））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:dripstone_block</td><td style="border: 1px solid #ddd; padding: 8px;">滴水石块</td><td style="border: 1px solid #ddd; padding: 8px;">FX 1 (rain)（效果1（雨声））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:dead_tube_coral_block</td><td style="border: 1px solid #ddd; padding: 8px;">枯死的管珊瑚块</td><td style="border: 1px solid #ddd; padding: 8px;">FX 2 (soundtrack)（效果2（配乐））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:magenta_concrete</td><td style="border: 1px solid #ddd; padding: 8px;">品红色混凝土</td><td style="border: 1px solid #ddd; padding: 8px;">FX 3 (crystal)（效果3（水晶））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:soul_lantern</td><td style="border: 1px solid #ddd; padding: 8px;">灵魂灯笼</td><td style="border: 1px solid #ddd; padding: 8px;">FX 4 (atmosphere)（效果4（氛围））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:shulker_box</td><td style="border: 1px solid #ddd; padding: 8px;">潜影盒</td><td style="border: 1px solid #ddd; padding: 8px;">FX 5 (brightness)（效果5（明亮））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:deepslate_emerald_ore</td><td style="border: 1px solid #ddd; padding: 8px;">深板岩绿宝石矿</td><td style="border: 1px solid #ddd; padding: 8px;">FX 6 (goblins)（效果6（地精））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:reinforced_deepslate</td><td style="border: 1px solid #ddd; padding: 8px;">强化深板岩</td><td style="border: 1px solid #ddd; padding: 8px;">FX 7 (echoes)（效果7（回声））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:polished_blackstone</td><td style="border: 1px solid #ddd; padding: 8px;">磨制黑石</td><td style="border: 1px solid #ddd; padding: 8px;">FX 8 (sci-fi)（效果8（科幻））</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:sandstone</td><td style="border: 1px solid #ddd; padding: 8px;">砂岩</td><td style="border: 1px solid #ddd; padding: 8px;">Sitar（西塔琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:orange_concrete</td><td style="border: 1px solid #ddd; padding: 8px;">橙色混凝土</td><td style="border: 1px solid #ddd; padding: 8px;">Banjo（班卓琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:red_sandstone</td><td style="border: 1px solid #ddd; padding: 8px;">红砂岩</td><td style="border: 1px solid #ddd; padding: 8px;">Shamisen（三味线）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:chiseled_quartz_block</td><td style="border: 1px solid #ddd; padding: 8px;">錾制石英块</td><td style="border: 1px solid #ddd; padding: 8px;">Koto（十三弦筝）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:bamboo_mosaic</td><td style="border: 1px solid #ddd; padding: 8px;">竹马赛克</td><td style="border: 1px solid #ddd; padding: 8px;">Kalimba（卡林巴琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:crimson_stem</td><td style="border: 1px solid #ddd; padding: 8px;">绯红菌柄</td><td style="border: 1px solid #ddd; padding: 8px;">Bag Pipe（风笛）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:acacia_log</td><td style="border: 1px solid #ddd; padding: 8px;">金合欢原木</td><td style="border: 1px solid #ddd; padding: 8px;">Fiddle（小提琴）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:warped_stem</td><td style="border: 1px solid #ddd; padding: 8px;">扭曲菌柄</td><td style="border: 1px solid #ddd; padding: 8px;">Shanai（山奈）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:prismarine_bricks</td><td style="border: 1px solid #ddd; padding: 8px;">海晶石砖</td><td style="border: 1px solid #ddd; padding: 8px;">Tinkle Bell（叮当铃）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:lodestone</td><td style="border: 1px solid #ddd; padding: 8px;">磁石</td><td style="border: 1px solid #ddd; padding: 8px;">Agogo（阿戈戈铃）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:raw_iron_block</td><td style="border: 1px solid #ddd; padding: 8px;">粗铁块</td><td style="border: 1px solid #ddd; padding: 8px;">Steel Drums（钢鼓）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:crafting_table</td><td style="border: 1px solid #ddd; padding: 8px;">工作台</td><td style="border: 1px solid #ddd; padding: 8px;">Woodblock（木块）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:crimson_hyphae</td><td style="border: 1px solid #ddd; padding: 8px;">绯红菌丝</td><td style="border: 1px solid #ddd; padding: 8px;">Taiko Drum（太鼓）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:warped_hyphae</td><td style="border: 1px solid #ddd; padding: 8px;">扭曲菌丝</td><td style="border: 1px solid #ddd; padding: 8px;">Melodic Tom（旋律桶鼓）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:honeycomb_block</td><td style="border: 1px solid #ddd; padding: 8px;">蜂巢块</td><td style="border: 1px solid #ddd; padding: 8px;">Synth Drum（合成鼓）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:glass</td><td style="border: 1px solid #ddd; padding: 8px;">玻璃</td><td style="border: 1px solid #ddd; padding: 8px;">Reverse Cymbal（反向钹）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:polished_andesite</td><td style="border: 1px solid #ddd; padding: 8px;">磨制安山岩</td><td style="border: 1px solid #ddd; padding: 8px;">Guitar Fret Noise（吉他品噪声）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:lime_wool</td><td style="border: 1px solid #ddd; padding: 8px;">浅绿色羊毛</td><td style="border: 1px solid #ddd; padding: 8px;">Breath Noise（呼吸声）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:dark_prismarine</td><td style="border: 1px solid #ddd; padding: 8px;">暗海晶石</td><td style="border: 1px solid #ddd; padding: 8px;">Seashore（海岸）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:birch_log</td><td style="border: 1px solid #ddd; padding: 8px;">白桦原木</td><td style="border: 1px solid #ddd; padding: 8px;">Bird Tweet（鸟鸣）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:polished_blackstone_bricks</td><td style="border: 1px solid #ddd; padding: 8px;">磨制黑石砖</td><td style="border: 1px solid #ddd; padding: 8px;">Telephone Ring（电话铃声）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:iron_trapdoor</td><td style="border: 1px solid #ddd; padding: 8px;">铁活板门</td><td style="border: 1px solid #ddd; padding: 8px;">Helicopter（直升机）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:gilded_blackstone</td><td style="border: 1px solid #ddd; padding: 8px;">镀金黑石</td><td style="border: 1px solid #ddd; padding: 8px;">Applause（掌声）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:tuff</td><td style="border: 1px solid #ddd; padding: 8px;">凝灰岩</td><td style="border: 1px solid #ddd; padding: 8px;">Gunshot（枪声）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">minecraft:sandstone</td><td style="border: 1px solid #ddd; padding: 8px;">砂岩</td><td style="border: 1px solid #ddd; padding: 8px;">Standard Drum Kit（标准鼓组）</td></tr>
-                    </tbody>
-                </table>
+                <p>在音符盒下方放置不同的方块，会默认映射到对应的 GM 乐器（此映射可在游戏内 GUI 界面中自定义）。完整的默认对应关系如下：</p>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>方块 ID</th>
+                                <th>游戏内方块</th>
+                                <th>默认对应乐器 (GM)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>minecraft:dirt</td><td>泥土</td><td>0: Acoustic Grand Piano (声学钢琴)</td></tr>
+                            <tr><td>minecraft:coarse_dirt</td><td>沙土</td><td>1: Bright Acoustic Piano (亮音钢琴)</td></tr>
+                            <tr><td>minecraft:podzol</td><td>灰化土</td><td>2: Electric Grand Piano (电钢琴)</td></tr>
+                            <tr><td>minecraft:rooted_dirt</td><td>缠根泥土</td><td>3: Honky-tonk Piano (酒吧钢琴)</td></tr>
+                            <tr><td>minecraft:clay</td><td>黏土块</td><td>4: Electric Piano 1 (电钢琴 1)</td></tr>
+                            <tr><td>minecraft:terracotta</td><td>陶瓦</td><td>5: Electric Piano 2 (电钢琴 2)</td></tr>
+                            <tr><td>minecraft:moss_block</td><td>苔藓块</td><td>6: Harpsichord (羽管键琴)</td></tr>
+                            <tr><td>minecraft:red_nether_bricks</td><td>红色下界砖块</td><td>7: Clavinet (击弦古钢琴)</td></tr>
+                            <tr><td>minecraft:light_blue_concrete</td><td>淡蓝色混凝土</td><td>8: Celesta (钢片琴)</td></tr>
+                            <tr><td>minecraft:polished_diorite</td><td>磨制闪长岩</td><td>9: Glockenspiel (钟琴)</td></tr>
+                            <tr><td>minecraft:amethyst_block</td><td>紫水晶块</td><td>10: Music Box (八音盒)</td></tr>
+                            <tr><td>minecraft:iron_block</td><td>铁块</td><td>11: Vibraphone (颤音琴)</td></tr>
+                            <tr><td>minecraft:oak_planks</td><td>橡木木板</td><td>12: Marimba (马林巴)</td></tr>
+                            <tr><td>minecraft:bone_block</td><td>骨块</td><td>13: Xylophone (木琴)</td></tr>
+                            <tr><td>minecraft:gold_block</td><td>金块</td><td>14: Tubular Bells (管钟)</td></tr>
+                            <tr><td>minecraft:hay_block</td><td>干草块</td><td>15: Dulcimer (扬琴)</td></tr>
+                            <tr><td>minecraft:beehive</td><td>蜂箱</td><td>16: Drawbar Organ (音栓风琴)</td></tr>
+                            <tr><td>minecraft:dried_kelp_block</td><td>干海带块</td><td>17: Percussive Organ (打击式风琴)</td></tr>
+                            <tr><td>minecraft:netherrack</td><td>下界岩</td><td>18: Rock Organ (摇滚风琴)</td></tr>
+                            <tr><td>minecraft:quartz_block</td><td>石英块</td><td>19: Church Organ (教堂管风琴)</td></tr>
+                            <tr><td>minecraft:mushroom_stem</td><td>蘑菇柄</td><td>20: Reed Organ (簧风琴)</td></tr>
+                            <tr><td>minecraft:bookshelf</td><td>书架</td><td>21: Accordion (手风琴)</td></tr>
+                            <tr><td>minecraft:bricks</td><td>砖块</td><td>22: Harmonica (口琴)</td></tr>
+                            <tr><td>minecraft:mud_bricks</td><td>泥砖</td><td>23: Tango Accordion (探戈手风琴)</td></tr>
+                            <tr><td>minecraft:oak_log</td><td>橡木原木</td><td>24: Acoustic Guitar (nylon) (尼龙弦吉他)</td></tr>
+                            <tr><td>minecraft:white_wool</td><td>白色羊毛</td><td>25: Acoustic Guitar (steel) (钢弦吉他)</td></tr>
+                            <tr><td>minecraft:shroomlight</td><td>菌光体</td><td>26: Electric Guitar (jazz) (爵士电吉他)</td></tr>
+                            <tr><td>minecraft:sea_lantern</td><td>海晶灯</td><td>27: Electric Guitar (clean) (清音电吉他)</td></tr>
+                            <tr><td>minecraft:soul_sand</td><td>灵魂沙</td><td>28: Electric Guitar (muted) (闷音电吉他)</td></tr>
+                            <tr><td>minecraft:blackstone</td><td>黑石</td><td>29: Overdriven Guitar (过载吉他)</td></tr>
+                            <tr><td>minecraft:obsidian</td><td>黑曜石</td><td>30: Distortion Guitar (失真吉他)</td></tr>
+                            <tr><td>minecraft:glass</td><td>玻璃</td><td>31: Guitar Harmonics (吉他泛音)</td></tr>
+                            <tr><td>minecraft:oak_wood</td><td>橡木</td><td>32: Acoustic Bass (原声贝斯)</td></tr>
+                            <tr><td>minecraft:spruce_planks</td><td>云杉木板</td><td>33: Electric Bass (finger) (指弹贝斯)</td></tr>
+                            <tr><td>minecraft:birch_planks</td><td>白桦木板</td><td>34: Electric Bass (pick) (拨片贝斯)</td></tr>
+                            <tr><td>minecraft:jungle_planks</td><td>丛林木板</td><td>35: Fretless Bass (无品贝斯)</td></tr>
+                            <tr><td>minecraft:acacia_planks</td><td>金合欢木板</td><td>36: Slap Bass 1 (击弦贝斯 1)</td></tr>
+                            <tr><td>minecraft:dark_oak_planks</td><td>深色橡木木板</td><td>37: Slap Bass 2 (击弦贝斯 2)</td></tr>
+                            <tr><td>minecraft:purpur_block</td><td>紫珀块</td><td>38: Synth Bass 1 (合成贝斯 1)</td></tr>
+                            <tr><td>minecraft:purpur_pillar</td><td>紫珀柱</td><td>39: Synth Bass 2 (合成贝斯 2)</td></tr>
+                            <tr><td>minecraft:cherry_planks</td><td>樱花木板</td><td>40: Violin (小提琴)</td></tr>
+                            <tr><td>minecraft:mangrove_planks</td><td>红树木板</td><td>41: Viola (中提琴)</td></tr>
+                            <tr><td>minecraft:crimson_planks</td><td>绯红木板</td><td>42: Cello (大提琴)</td></tr>
+                            <tr><td>minecraft:warped_planks</td><td>诡异木板</td><td>43: Contrabass (低音提琴)</td></tr>
+                            <tr><td>minecraft:chiseled_stone_bricks</td><td>錾制石砖</td><td>44: Tremolo Strings (弦乐颤音)</td></tr>
+                            <tr><td>minecraft:melon_block</td><td>西瓜</td><td>45: Pizzicato Strings (弦乐拨奏)</td></tr>
+                            <tr><td>minecraft:smooth_sandstone</td><td>平滑砂岩</td><td>46: Orchestral Harp (竖琴)</td></tr>
+                            <tr><td>minecraft:stone</td><td>石头</td><td>47: Timpani (定音鼓)</td></tr>
+                            <tr><td>minecraft:calcite</td><td>方解石</td><td>48: String Ensemble 1 (弦乐合奏 1)</td></tr>
+                            <tr><td>minecraft:light_gray_wool</td><td>淡灰色羊毛</td><td>49: String Ensemble 2 (弦乐合奏 2)</td></tr>
+                            <tr><td>minecraft:end_stone</td><td>末地石</td><td>50: Synth Strings 1 (合成弦乐 1)</td></tr>
+                            <tr><td>minecraft:end_stone_bricks</td><td>末地石砖</td><td>51: Synth Strings 2 (合成弦乐 2)</td></tr>
+                            <tr><td>minecraft:soul_soil</td><td>灵魂土</td><td>52: Choir Aahs (人声合唱“啊”)</td></tr>
+                            <tr><td>minecraft:cyan_wool</td><td>青色羊毛</td><td>53: Voice Oohs (人声合唱“哦”)</td></tr>
+                            <tr><td>minecraft:sculk</td><td>潜声块</td><td>54: Synth Voice (合成人声)</td></tr>
+                            <tr><td>minecraft:ancient_debris</td><td>远古残骸</td><td>55: Orchestra Hit (交响乐齐奏)</td></tr>
+                            <tr><td>minecraft:waxed_cut_copper</td><td>涂蜡切制铜块</td><td>56: Trumpet (小号)</td></tr>
+                            <tr><td>minecraft:waxed_exposed_cut_copper</td><td>涂蜡斑驳的切制铜块</td><td>57: Trombone (长号)</td></tr>
+                            <tr><td>minecraft:waxed_copper_block</td><td>涂蜡铜块</td><td>58: Tuba (大号)</td></tr>
+                            <tr><td>minecraft:waxed_weathered_cut_copper</td><td>涂蜡风化的切制铜块</td><td>59: Muted Trumpet (弱音小号)</td></tr>
+                            <tr><td>minecraft:copper_ore</td><td>铜矿石</td><td>60: French Horn (圆号)</td></tr>
+                            <tr><td>minecraft:waxed_oxidized_copper</td><td>涂蜡氧化的铜块</td><td>61: Brass Section (铜管组)</td></tr>
+                            <tr><td>minecraft:diamond_block</td><td>钻石块</td><td>62: Synth Brass 1 (合成铜管 1)</td></tr>
+                            <tr><td>minecraft:diamond_ore</td><td>钻石矿石</td><td>63: Synth Brass 2 (合成铜管 2)</td></tr>
+                            <tr><td>minecraft:yellow_terracotta</td><td>黄色陶瓦</td><td>64: Soprano Sax (高音萨克斯)</td></tr>
+                            <tr><td>minecraft:orange_terracotta</td><td>橙色陶瓦</td><td>65: Alto Sax (中音萨克斯)</td></tr>
+                            <tr><td>minecraft:red_terracotta</td><td>红色陶瓦</td><td>66: Tenor Sax (次中音萨克斯)</td></tr>
+                            <tr><td>minecraft:brown_terracotta</td><td>棕色陶瓦</td><td>67: Baritone Sax (上低音萨克斯)</td></tr>
+                            <tr><td>minecraft:white_concrete</td><td>白色混凝土</td><td>68: Oboe (双簧管)</td></tr>
+                            <tr><td>minecraft:light_gray_concrete</td><td>淡灰色混凝土</td><td>69: English Horn (英国管)</td></tr>
+                            <tr><td>minecraft:gray_concrete</td><td>灰色混凝土</td><td>70: Bassoon (大管)</td></tr>
+                            <tr><td>minecraft:black_concrete</td><td>黑色混凝土</td><td>71: Clarinet (单簧管)</td></tr>
+                            <tr><td>minecraft:stripped_spruce_log</td><td>去皮云杉原木</td><td>72: Piccolo (短笛)</td></tr>
+                            <tr><td>minecraft:bamboo_planks</td><td>竹板</td><td>73: Flute (长笛)</td></tr>
+                            <tr><td>minecraft:bamboo_block</td><td>竹块</td><td>74: Recorder (竖笛)</td></tr>
+                            <tr><td>minecraft:stripped_bamboo_block</td><td>去皮竹块</td><td>75: Pan Flute (排箫)</td></tr>
+                            <tr><td>minecraft:tinted_glass</td><td>遮光玻璃</td><td>76: Blown Bottle (吹瓶口)</td></tr>
+                            <tr><td>minecraft:cherry_log</td><td>樱花原木</td><td>77: Shakuhachi (尺八)</td></tr>
+                            <tr><td>minecraft:iron_bars</td><td>铁栏杆</td><td>78: Whistle (口哨)</td></tr>
+                            <tr><td>minecraft:packed_mud</td><td>打包泥浆</td><td>79: Ocarina (奥卡利那笛)</td></tr>
+                            <tr><td>minecraft:emerald_block</td><td>绿宝石块</td><td>80: Lead 1 (square) (合成主音1-方波)</td></tr>
+                            <tr><td>minecraft:emerald_ore</td><td>绿宝石矿石</td><td>81: Lead 2 (sawtooth) (合成主音2-锯齿波)</td></tr>
+                            <tr><td>minecraft:lapis_block</td><td>青金石块</td><td>82: Lead 3 (calliope) (合成主音3-汽笛风琴)</td></tr>
+                            <tr><td>minecraft:lapis_ore</td><td>青金石矿石</td><td>83: Lead 4 (chiff) (合成主音4-呼吸声)</td></tr>
+                            <tr><td>minecraft:purple_glazed_terracotta</td><td>紫色带釉陶瓦</td><td>84: Lead 5 (charang) (合成主音5-电吉他)</td></tr>
+                            <tr><td>minecraft:magenta_glazed_terracotta</td><td>品红色带釉陶瓦</td><td>85: Lead 6 (voice) (合成主音6-人声)</td></tr>
+                            <tr><td>minecraft:cyan_glazed_terracotta</td><td>青色带釉陶瓦</td><td>86: Lead 7 (fifths) (合成主音7-五度)</td></tr>
+                            <tr><td>minecraft:blue_glazed_terracotta</td><td>蓝色带釉陶瓦</td><td>87: Lead 8 (bass + lead) (合成主音8-贝斯+主音)</td></tr>
+                            <tr><td>minecraft:ochre_froglight</td><td>赭黄蛙明灯</td><td>88: Pad 1 (new age) (合成音色1-新世纪)</td></tr>
+                            <tr><td>minecraft:glowstone</td><td>荧石</td><td>89: Pad 2 (warm) (合成音色2-温暖)</td></tr>
+                            <tr><td>minecraft:verdant_froglight</td><td>青翠蛙明灯</td><td>90: Pad 3 (polysynth) (合成音色3-复音)</td></tr>
+                            <tr><td>minecraft:crying_obsidian</td><td>哭泣的黑曜石</td><td>91: Pad 4 (choir) (合成音色4-合唱)</td></tr>
+                            <tr><td>minecraft:white_stained_glass</td><td>白色染色玻璃</td><td>92: Pad 5 (bowed) (合成音色5-玻璃)</td></tr>
+                            <tr><td>minecraft:netherite_block</td><td>下界合金块</td><td>93: Pad 6 (metallic) (合成音色6-金属)</td></tr>
+                            <tr><td>minecraft:beacon</td><td>信标</td><td>94: Pad 7 (halo) (合成音色7-光环)</td></tr>
+                            <tr><td>minecraft:pink_wool</td><td>粉红色羊毛</td><td>95: Pad 8 (sweep) (合成音色8-扫弦)</td></tr>
+                            <tr><td>minecraft:dripstone_block</td><td>滴水石块</td><td>96: FX 1 (rain) (音效1-雨)</td></tr>
+                            <tr><td>minecraft:dead_tube_coral_block</td><td>失活的管珊瑚块</td><td>97: FX 2 (soundtrack) (音效2-电影)</td></tr>
+                            <tr><td>minecraft:magenta_concrete</td><td>品红色混凝土</td><td>98: FX 3 (crystal) (音效3-水晶)</td></tr>
+                            <tr><td>minecraft:soul_lantern</td><td>灵魂灯笼</td><td>99: FX 4 (atmosphere) (音效4-氛围)</td></tr>
+                            <tr><td>minecraft:shulker_box</td><td>潜影盒</td><td>100: FX 5 (brightness) (音效5-明亮)</td></tr>
+                            <tr><td>minecraft:deepslate_emerald_ore</td><td>深层绿宝石矿石</td><td>101: FX 6 (goblins) (音效6-哥布林)</td></tr>
+                            <tr><td>minecraft:reinforced_deepslate</td><td>强化深板岩</td><td>102: FX 7 (echoes) (音效7-回声)</td></tr>
+                            <tr><td>minecraft:polished_blackstone</td><td>磨制黑石</td><td>103: FX 8 (sci-fi) (音效8-科幻)</td></tr>
+                            <tr><td>minecraft:barrel</td><td>木桶</td><td>104: Sitar (西塔琴)</td></tr>
+                            <tr><td>minecraft:orange_concrete</td><td>橙色混凝土</td><td>105: Banjo (班卓琴)</td></tr>
+                            <tr><td>minecraft:red_sandstone</td><td>红砂岩</td><td>106: Shamisen (三味线)</td></tr>
+                            <tr><td>minecraft:chiseled_quartz_block</td><td>錾制石英块</td><td>107: Koto (筝)</td></tr>
+                            <tr><td>minecraft:bamboo_mosaic</td><td>竹马赛克</td><td>108: Kalimba (卡林巴)</td></tr>
+                            <tr><td>minecraft:crimson_stem</td><td>绯红菌柄</td><td>109: Bag pipe (风笛)</td></tr>
+                            <tr><td>minecraft:acacia_log</td><td>金合欢原木</td><td>110: Fiddle (民族提琴)</td></tr>
+                            <tr><td>minecraft:warped_stem</td><td>诡异菌柄</td><td>111: Shanai (唢呐)</td></tr>
+                            <tr><td>minecraft:prismarine_bricks</td><td>海晶石砖</td><td>112: Tinkle Bell (叮当铃)</td></tr>
+                            <tr><td>minecraft:lodestone</td><td>磁石</td><td>113: Agogo (阿哥哥鼓)</td></tr>
+                            <tr><td>minecraft:raw_iron_block</td><td>粗铁块</td><td>114: Steel Drums (钢鼓)</td></tr>
+                            <tr><td>minecraft:crafting_table</td><td>工作台</td><td>115: Woodblock (木鱼)</td></tr>
+                            <tr><td>minecraft:crimson_hyphae</td><td>绯红菌核</td><td>116: Taiko Drum (太鼓)</td></tr>
+                            <tr><td>minecraft:warped_hyphae</td><td>诡异菌核</td><td>117: Melodic Tom (通通鼓)</td></tr>
+                            <tr><td>minecraft:honeycomb_block</td><td>蜜脾块</td><td>118: Synth Drum (合成鼓)</td></tr>
+                            <tr><td>minecraft:bell</td><td>钟</td><td>119: Reverse Cymbal (反向钹)</td></tr>
+                            <tr><td>minecraft:polished_andesite</td><td>磨制安山岩</td><td>120: Guitar Fret Noise (吉他品丝噪音)</td></tr>
+                            <tr><td>minecraft:lime_wool</td><td>黄绿色羊毛</td><td>121: Breath Noise (呼吸噪音)</td></tr>
+                            <tr><td>minecraft:dark_prismarine</td><td>暗海晶石</td><td>122: Seashore (海浪声)</td></tr>
+                            <tr><td>minecraft:birch_log</td><td>白桦原木</td><td>123: Bird Tweet (鸟鸣声)</td></tr>
+                            <tr><td>minecraft:polished_blackstone_bricks</td><td>磨制黑石砖</td><td>124: Telephone Ring (电话铃声)</td></tr>
+                            <tr><td>minecraft:iron_trapdoor</td><td>铁活板门</td><td>125: Helicopter (直升机声)</td></tr>
+                            <tr><td>minecraft:gilded_blackstone</td><td>镶金黑石</td><td>126: Applause (鼓掌声)</td></tr>
+                            <tr><td>minecraft:tuff</td><td>凝灰岩</td><td>127: Gunshot (枪声)</td></tr>
+                            <tr><td>minecraft:sandstone</td><td>砂岩</td><td>(特殊) Standard Drum Kit (标准鼓组)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
-            <!-- 鼓组音高与音色 -->
             <section class="section">
                 <h2 class="section-title">鼓组音高与音色对应</h2>
-                
-                <p>在鼓组模式下（对应128号乐器），不同的音高（MIDI键号35-81）对应不同的打击乐音色：</p>
-                
-                <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
-                    <thead>
-                        <tr style="background-color: var(--shape-color);">
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">音高（MIDI键号）</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">对应打击乐音色</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">35</td><td style="border: 1px solid #ddd; padding: 8px;">低音鼓 1</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">36</td><td style="border: 1px solid #ddd; padding: 8px;">低音鼓 2（底鼓）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">37</td><td style="border: 1px solid #ddd; padding: 8px;">边击军鼓</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">38</td><td style="border: 1px solid #ddd; padding: 8px;">军鼓</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">39</td><td style="border: 1px solid #ddd; padding: 8px;">击边军鼓</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">40</td><td style="border: 1px solid #ddd; padding: 8px;">拍手</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">41</td><td style="border: 1px solid #ddd; padding: 8px;">低音桶鼓</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">42</td><td style="border: 1px solid #ddd; padding: 8px;">闭击踩镲</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">43</td><td style="border: 1px solid #ddd; padding: 8px;">高音桶鼓</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">44</td><td style="border: 1px solid #ddd; padding: 8px;">开击踩镲</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">45</td><td style="border: 1px solid #ddd; padding: 8px;">低嗵鼓</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">46</td><td style="border: 1px solid #ddd; padding: 8px;">高嗵鼓</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">47</td><td style="border: 1px solid #ddd; padding: 8px;">悬钹 1</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">48</td><td style="border: 1px solid #ddd; padding: 8px;">低吊镲</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">49</td><td style="border: 1px solid #ddd; padding: 8px;">RIDE 钹 2</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">50</td><td style="border: 1px solid #ddd; padding: 8px;">叮镲</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">51</td><td style="border: 1px solid #ddd; padding: 8px;">中国镲</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">52</td><td style="border: 1px solid #ddd; padding: 8px;"> splash 钹（水镲）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">53</td><td style="border: 1px solid #ddd; padding: 8px;">铜钹</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">54</td><td style="border: 1px solid #ddd; padding: 8px;">牛铃</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">55</td><td style="border: 1px solid #ddd; padding: 8px;"> Vibraslap（颤音板）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">56</td><td style="border: 1px solid #ddd; padding: 8px;">木鱼（高音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">57</td><td style="border: 1px solid #ddd; padding: 8px;">木鱼（低音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">58</td><td style="border: 1px solid #ddd; padding: 8px;">高音梆子</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">59</td><td style="border: 1px solid #ddd; padding: 8px;">低音梆子</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">60</td><td style="border: 1px solid #ddd; padding: 8px;">响板</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">61</td><td style="border: 1px solid #ddd; padding: 8px;"> Castanets（响板）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">62</td><td style="border: 1px solid #ddd; padding: 8px;">高音三角铁</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">63</td><td style="border: 1px solid #ddd; padding: 8px;">低音三角铁</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">64</td><td style="border: 1px solid #ddd; padding: 8px;">三角铁（闷音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">65</td><td style="border: 1px solid #ddd; padding: 8px;">钹（闷音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">66</td><td style="border: 1px solid #ddd; padding: 8px;">RIDE 钹（闷音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">67</td><td style="border: 1px solid #ddd; padding: 8px;">悬钹（闷音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">68</td><td style="border: 1px solid #ddd; padding: 8px;">节拍镲 1</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">69</td><td style="border: 1px solid #ddd; padding: 8px;">节拍镲 2</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">70</td><td style="border: 1px solid #ddd; padding: 8px;">非洲鼓（高音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">71</td><td style="border: 1px solid #ddd; padding: 8px;">非洲鼓（中音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">72</td><td style="border: 1px solid #ddd; padding: 8px;">非洲鼓（低音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">73</td><td style="border: 1px solid #ddd; padding: 8px;">康加鼓（高音，开音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">74</td><td style="border: 1px solid #ddd; padding: 8px;">康加鼓（中音，开音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">75</td><td style="border: 1px solid #ddd; padding: 8px;">康加鼓（低音，开音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">76</td><td style="border: 1px solid #ddd; padding: 8px;">康加鼓（高音，闷音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">77</td><td style="border: 1px solid #ddd; padding: 8px;">康加鼓（中音，闷音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">78</td><td style="border: 1px solid #ddd; padding: 8px;">邦戈鼓（高音，开音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">79</td><td style="border: 1px solid #ddd; padding: 8px;">邦戈鼓（低音，开音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">80</td><td style="border: 1px solid #ddd; padding: 8px;">邦戈鼓（高音，闷音）</td></tr>
-                        <tr><td style="border: 1px solid #ddd; padding: 8px;">81</td><td style="border: 1px solid #ddd; padding: 8px;">邦戈鼓（低音，闷音）</td></tr>
-                    </tbody>
-                </table>
-                
-                <p>以上映射完全遵循 General MIDI 标准打击乐定义，适用于所有标准 MIDI 音源库。</p>
+                <p>当乐器选择为“标准鼓组”时，音符盒的音高（对应 MIDI 键号 35-81）将触发不同的打击乐器音色：</p>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>音高 (MIDI 键号)</th>
+                                <th>对应打击乐音色</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>35</td><td>Acoustic Bass Drum (底鼓)</td></tr>
+                            <tr><td>36</td><td>Bass Drum 1 (底鼓 1)</td></tr>
+                            <tr><td>37</td><td>Side Stick (侧击)</td></tr>
+                            <tr><td>38</td><td>Acoustic Snare (军鼓)</td></tr>
+                            <tr><td>39</td><td>Hand Clap (拍手)</td></tr>
+                            <tr><td>40</td><td>Electric Snare (电音军鼓)</td></tr>
+                            <tr><td>41</td><td>Low Floor Tom (低音落地嗵鼓)</td></tr>
+                            <tr><td>42</td><td>Closed Hi-Hat (闭合踩镲)</td></tr>
+                            <tr><td>43</td><td>High Floor Tom (高音落地嗵鼓)</td></tr>
+                            <tr><td>44</td><td>Pedal Hi-Hat (踏板踩镲)</td></tr>
+                            <tr><td>45</td><td>Low Tom (低音嗵鼓)</td></tr>
+                            <tr><td>46</td><td>Open Hi-Hat (开放踩镲)</td></tr>
+                            <tr><td>47</td><td>Low-Mid Tom (中低音嗵鼓)</td></tr>
+                            <tr><td>48</td><td>Hi-Mid Tom (中高音嗵鼓)</td></tr>
+                            <tr><td>49</td><td>Crash Cymbal 1 (碎音钹 1)</td></tr>
+                            <tr><td>50</td><td>High Tom (高音嗵鼓)</td></tr>
+                            <tr><td>51</td><td>Ride Cymbal 1 (节奏钹 1)</td></tr>
+                            <tr><td>52</td><td>Chinese Cymbal (中国钹)</td></tr>
+                            <tr><td>53</td><td>Ride Bell (节奏钹帽)</td></tr>
+                            <tr><td>54</td><td>Tambourine (铃鼓)</td></tr>
+                            <tr><td>55</td><td>Splash Cymbal (水钹)</td></tr>
+                            <tr><td>56</td><td>Cowbell (牛铃)</td></tr>
+                            <tr><td>57</td><td>Crash Cymbal 2 (碎音钹 2)</td></tr>
+                            <tr><td>58</td><td>Vibraslap (振动器)</td></tr>
+                            <tr><td>59</td><td>Ride Cymbal 2 (节奏钹 2)</td></tr>
+                            <tr><td>60</td><td>Hi Bongo (高音邦哥鼓)</td></tr>
+                            <tr><td>61</td><td>Low Bongo (低音邦哥鼓)</td></tr>
+                            <tr><td>62</td><td>Mute Hi Conga (闷音高音康佳鼓)</td></tr>
+                            <tr><td>63</td><td>Open Hi Conga (开放高音康佳鼓)</td></tr>
+                            <tr><td>64</td><td>Low Conga (低音康佳鼓)</td></tr>
+                            <tr><td>65</td><td>High Timbale (高音天巴鼓)</td></tr>
+                            <tr><td>66</td><td>Low Timbale (低音天巴鼓)</td></tr>
+                            <tr><td>67</td><td>High Agogo (高音阿哥哥鼓)</td></tr>
+                            <tr><td>68</td><td>Low Agogo (低音阿哥哥鼓)</td></tr>
+                            <tr><td>69</td><td>Cabasa (卡巴沙)</td></tr>
+                            <tr><td>70</td><td>Maracas (沙锤)</td></tr>
+                            <tr><td>71</td><td>Short Whistle (短哨)</td></tr>
+                            <tr><td>72</td><td>Long Whistle (长哨)</td></tr>
+                            <tr><td>73</td><td>Short Guiro (短刮瓜)</td></tr>
+                            <tr><td>74</td><td>Long Guiro (长刮瓜)</td></tr>
+                            <tr><td>75</td><td>Claves (响棒)</td></tr>
+                            <tr><td>76</td><td>Hi Wood Block (高音木鱼)</td></tr>
+                            <tr><td>77</td><td>Low Wood Block (低音木鱼)</td></tr>
+                            <tr><td>78</td><td>Mute Cuica (闷音库加鼓)</td></tr>
+                            <tr><td>79</td><td>Open Cuica (开放库加鼓)</td></tr>
+                            <tr><td>80</td><td>Mute Triangle (闷音三角铁)</td></tr>
+                            <tr><td>81</td><td>Open Triangle (开放三角铁)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>以上映射完全遵循 General MIDI (GM) 标准打击乐定义，适用于绝大多数标准音源库。</p>
             </section>
 
         </main>
 
-        <!-- 页脚 -->
         <footer class="footer">
-            <p>&copy; 2025 Extended Note Block</p>
+            <p>&copy; 2025 Extended Note Block. All Rights Reserved.</p>
         </footer>
 
     </div>
 </body>
-
 
 </html>

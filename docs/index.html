@@ -1,4 +1,3 @@
-<!-- docs/index.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -13,143 +12,132 @@
 
     <div class="container">
 
-        <!-- 头部 -->
         <header class="header">
             <h1>Extended Note Block</h1>
         </header>
 
         <main class="main-content">
 
-            <!-- 项目介绍 -->
-            <section class="section">
-                <p>
-                    <a href="https://img.shields.io/badge/modloader-Fabric-blue?style=for-the-badge"><img src="https://img.shields.io/badge/modloader-Fabric-blue?style=for-the-badge" alt="Fabric"></a>
-                    <a href="https://img.shields.io/badge/minecraft-1.20.x-green?style=for-the-badge"><img src="https://img.shields.io/badge/minecraft-1.20.x-green?style=for-the-badge" alt="Minecraft"></a>
-                    <a href="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT"></a>
-                    <a href="https://img.shields.io/badge/download-Modrinth-00AF5C?style=for-the-badge"><img src="https://img.shields.io/badge/download-Modrinth-00AF5C?style=for-the-badge" alt="Modrinth"></a>
-                </p>
+            <section class="section text-center">
+                <div class="badges-container">
+                    <img src="https://img.shields.io/badge/modloader-Fabric-blue?style=for-the-badge" alt="Modloader: Fabric">
+                    <img src="https://img.shields.io/badge/minecraft-1.20.x-green?style=for-the-badge" alt="Minecraft: 1.20.x">
+                    <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT">
+                    <a href="https://modrinth.com/mod/extended-note-block" target="_blank" rel="noopener noreferrer">
+                        <img src="https://img.shields.io/badge/download-Modrinth-00AF5C?style=for-the-badge" alt="Download on Modrinth">
+                    </a>
+                </div>
                 
-                <p>**Extended Note Block** 是一个专为 Minecraft Fabric 平台设计的模组，它为游戏引入了全新的音乐创作体验。该模组添加了一个功能强大的**扩展音符盒 (Extended Note Block)** 方块，将原版简单的音符系统升级为完整的音乐制作工具。</p>
+                <p><strong>Extended Note Block</strong> 是一个专为 Minecraft Fabric 平台设计的模组，它为游戏引入了全新的音乐创作体验。该模组添加了一个功能强大的<strong>扩展音符盒 (Extended Note Block)</strong> 方块，将原版简单的音符系统升级为完整的音乐制作工具。</p>
             </section>
 
-            <!-- 核心功能 -->
             <section class="section">
                 <h2 class="section-title">✨ 核心功能</h2>
-                
-                <ul class="project-list">
-                    <li class="project-item">**独立音符盒方块**: 本模组提供了一个全新的"扩展音符盒"方块，配备专用的图形用户界面，与原版音符盒系统完全独立运行。</li>
-                    <li class="project-item">**完整的 General MIDI 乐器库**: 支持全套 128 种标准 MIDI 乐器，涵盖从经典钢琴、弦乐器组到现代合成音色的全部音色范围，通过直观的下拉菜单进行选择。</li>
-                    <li class="project-item">**可视化钢琴键盘界面**: 提供涵盖 128 个琴键的可滚动钢琴界面，支持从 C-1 到 G9 的完整音域范围，实现精确的音高选择，告别传统的重复点击操作。</li>
-                    <li class="project-item">**专业级音符控制参数**:
+                <ul class="feature-list">
+                    <li><strong>独立音符盒方块</strong>: 提供一个全新的“扩展音符盒”方块，配备专用 GUI，与原版音符盒系统完全独立。</li>
+                    <li><strong>完整的 General MIDI 乐器库</strong>: 支持全套 128 种标准 MIDI 乐器，涵盖从钢琴、弦乐到合成音色的全部范围，通过直观菜单即可选择。</li>
+                    <li><strong>可视化钢琴键盘界面</strong>: 提供涵盖 128 个琴键（C-1 到 G9）的可滚动钢琴界面，实现精确音高选择，告别重复点击。</li>
+                    <li>
+                        <strong>专业级音符控制参数</strong>:
                         <ul>
-                            <li>**力度控制 (Velocity)**: 精确调节音符演奏强度，直接影响音量表现。</li>
-                            <li>**延音设置 (Sustain)**: 以游戏刻为单位设置音符持续时间，支持长音符和琶音效果的制作。</li>
+                            <li><strong>力度 (Velocity)</strong>: 精确调节音符演奏强度，直接影响音量。</li>
+                            <li><strong>延音 (Sustain)</strong>: 以游戏刻为单位设置音符持续时间，支持长音符和琶音效果。</li>
                         </ul>
                     </li>
-                    <li class="project-item">**基于 SoundFont 的自定义音频引擎**: 
+                    <li>
+                        <strong>基于 SoundFont 的自定义音频引擎</strong>:
                         <ul>
-                            <li>模组本身不包含预置音频文件，采用高效的 **SoundFont (.sf2)** 技术动态生成所有乐器声音。</li>
-                            <li>默认集成高品质的 **GeneralUser GS** 音源库，可免费分发使用。</li>
-                            <li>支持用户导入自定义 `.sf2` 文件，实现完全个性化的音色定制。</li>
+                            <li>模组采用高效的 <strong>SoundFont (.sf2)</strong> 技术动态生成乐器声音，不含预置音频。</li>
+                            <li>默认集成高品质且可免费分发的 <strong>GeneralUser GS</strong> 音源库。</li>
+                            <li>支持用户导入自定义 <code>.sf2</code> 文件，实现完全个性化的音色定制。</li>
                         </ul>
                     </li>
                 </ul>
             </section>
 
-            <!-- 界面展示 -->
             <section class="section">
                 <h2 class="section-title">📸 界面展示</h2>
-                
-                <p><img src="../docs/assets/screenshot1.png" alt="Main GUI" title="扩展音符盒主界面"></p>
-                <p><img src="../docs/assets/screenshot2.png" alt="Rendering Screen" title="音源渲染配置界面"></p>
+                <div class="screenshots-container">
+                    <figure>
+                        <img src="../docs/assets/screenshot1.png" alt="扩展音符盒主界面截图">
+                        <figcaption>扩展音符盒主界面</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="../docs/assets/screenshot2.png" alt="音源渲染配置界面截图">
+                        <figcaption>音源渲染配置界面</figcaption>
+                    </figure>
+                </div>
             </section>
 
-            <!-- 工作原理 -->
             <section class="section">
-                <h2 class="section-title">⚙️ 工作原理说明</h2>
-                
-                <p>Extended Note Block 采用了与传统模组不同的音频处理方式，通过独特的**一次性生成机制**创建游戏所需的音频资源。</p>
-                
-                <ol class="project-list">
-                    <li class="project-item">**SoundFont 技术**: 使用包含乐器采样数据的 `.sf2` 格式文件作为音源基础。</li>
-                    <li class="project-item">**外部音频工具集成**: 模组将引导您配置两个专业音频处理工具：
+                <h2 class="section-title">⚙️ 工作原理</h2>
+                <p>本模组通过独特的<strong>一次性生成机制</strong>创建音频资源，而非传统方式。</p>
+                <ol class="step-list">
+                    <li><strong>SoundFont 技术</strong>: 使用包含乐器采样数据的 <code>.sf2</code> 文件作为音源基础。</li>
+                    <li>
+                        <strong>外部工具集成</strong>: 模组将引导您配置两个专业音频工具：
                         <ul>
-                            <li>**FluidSynth**: 高性能数字音频合成器，负责音频合成处理。</li>
-                            <li>**FFmpeg**: 多媒体框架工具，负责将音频转换为 Minecraft 兼容的格式。</li>
+                            <li><strong>FluidSynth</strong>: 高性能数字音频合成器，负责音频合成。</li>
+                            <li><strong>FFmpeg</strong>: 多媒体框架，负责将音频转换为 Minecraft 兼容的 <code>.ogg</code> 格式。</li>
                         </ul>
                     </li>
-                    <li class="project-item">**自动资源包生成**: 配置完成后，模组将自动调用上述工具，为每个音符和乐器组合生成对应的 `.ogg` 音频文件，并自动打包资源包。</li>
+                    <li><strong>自动资源包生成</strong>: 配置完成后，模组将自动调用上述工具，为每个音符和乐器组合生成音频文件，并打包成资源包供游戏加载。</li>
                 </ol>
             </section>
 
-            <!-- 安装要求与步骤 -->
             <section class="section">
                 <h2 class="section-title">💾 安装要求与步骤</h2>
-                
-                <p>**系统要求**: Fabric Loader 和 Fabric API</p>
-                
-                <p>**安装步骤**:
-                <ol class="project-list">
-                    <li class="project-item">确保已正确安装 Fabric Loader。</li>
-                    <li class="project-item">下载并安装 <a href="https://modrinth.com/mod/fabric-api" target="_blank">Fabric API</a>，将其放置在 `mods` 目录中。</li>
-                    <li class="project-item">下载最新版本的 **Extended Note Block** 模组文件，放置在 `mods` 目录中。</li>
-                    <li class="project-item">启动游戏以完成安装。</li>
+                <p><strong>前置要求</strong>: <a href="https://fabricmc.net/use/" target="_blank">Fabric Loader</a> 和 <a href="https://modrinth.com/mod/fabric-api" target="_blank">Fabric API</a>。</p>
+                <ol class="step-list">
+                    <li>确保已正确安装 Fabric Loader。</li>
+                    <li>下载最新版 Fabric API 并将其放入 <code>mods</code> 目录。</li>
+                    <li>下载最新版 <strong>Extended Note Block</strong> 模组并放入 <code>mods</code> 目录。</li>
+                    <li>启动游戏以完成安装。</li>
                 </ol>
-                </p>
             </section>
 
-            <!-- 文档链接 -->
-            <section class="section documentation">
-                <h2 class="section-title">使用指南</h2>
-                <ul class="project-list">
-                    <li class="project-item">
+            <section class="section">
+                <h2 class="section-title">📖 使用指南</h2>
+                <div class="project-list">
+                    <div class="project-item">
                         <h3 class="project-title">
-                            <a href="./howtouse.html" target="_self">使用教程 &gt;</a>
+                            <a href="./howtouse.html">使用教程 &gt;</a>
                         </h3>
-                        <p class="project-description">详细介绍如何安装配置所需工具、渲染设置以及乐器映射关系</p>
-                    </li>
-                </ul>
+                        <p class="project-description">详细介绍如何安装配置所需工具、渲染设置以及乐器映射关系。</p>
+                    </div>
+                </div>
             </section>
-
-            <!-- 项目贡献 -->
+            
             <section class="section">
                 <h2 class="section-title">🤝 项目贡献</h2>
-                
-                <p>我们欢迎并鼓励社区成员为项目发展贡献力量。如发现程序缺陷或有功能改进建议，请通过 <a href="https://github.com/atemukesu/ExtendedNoteBlock/issues" target="_blank">Issues</a> 页面提交反馈。</p>
+                <p>我们欢迎并鼓励社区成员为项目发展贡献力量。如发现程序缺陷或有功能改进建议，请通过 <a href="https://github.com/atemukesu/ExtendedNoteBlock/issues" target="_blank">GitHub Issues</a> 页面提交反馈。</p>
             </section>
 
-            <!-- 开源协议 -->
             <section class="section">
                 <h2 class="section-title">📜 开源协议</h2>
-                
-                <p>本项目采用 <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a> 开源协议发布。</p>
+                <p>本项目基于 <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a> 开源协议发布。</p>
             </section>
 
-            <!-- 特别致谢 -->
             <section class="section">
                 <h2 class="section-title">🙏 特别致谢</h2>
-                
-                <ul class="project-list">
-                    <li class="project-item">**Fabric 开发团队** - 感谢提供优秀的模组开发平台。</li>
-                    <li class="project-item">**S. Christian Collins** - 感谢创作并开源分享高质量的 <a href="http://schristiancollins.com/generaluser.php" target="_blank">GeneralUser GS</a> SoundFont 音源库。</li>
-                    <li class="project-item">**FluidSynth** 与 **FFmpeg** 项目的全体开发者 - 感谢提供强大的开源音频处理工具。</li>
+                <ul class="acknowledgement-list">
+                    <li><strong>Fabric 开发团队</strong> - 感谢提供优秀的模组开发平台。</li>
+                    <li><strong>S. Christian Collins</strong> - 感谢创作并开源分享高质量的 <a href="http://schristiancollins.com/generaluser.php" target="_blank">GeneralUser GS</a> SoundFont 音源库。</li>
+                    <li><strong>FluidSynth</strong> 与 <strong>FFmpeg</strong> 项目的全体开发者 - 感谢提供强大的开源音频处理工具。</li>
                 </ul>
             </section>
 
-            <!-- 温馨提示 -->
-            <section class="section">
+            <section class="section notice-section">
                 <h2 class="section-title">❗ 温馨提示</h2>
-                
-                <p>不要轻易阅读本仓库中的代码。</p>
+                <p>请谨慎阅读本仓库中的代码。</p>
                 <p>本仓库中含有大量 AI 生成的代码和注释，部分代码仅被验证功能可用，未经仔细核查。</p>
-                <p>本页面内容使用了 AI 工具辅助创作。</p>
+                <p>本页面内容亦使用了 AI 工具辅助创作。</p>
             </section>
 
         </main>
 
-        <!-- 页脚 -->
         <footer class="footer">
-            <p>&copy; 2025 Extended Note Block</p>
+            <p>&copy; 2025 Extended Note Block. All Rights Reserved.</p>
         </footer>
 
     </div>

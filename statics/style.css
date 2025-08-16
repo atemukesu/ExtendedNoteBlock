@@ -172,3 +172,99 @@ body::after {
     color: var(--secondary-color);
     font-size: 0.9rem;
 }
+
+/* --- 6. 教程页面特定样式 --- */
+
+/* 统一节内的段落样式 */
+.section p {
+    font-size: 1rem;
+    color: var(--secondary-color);
+    margin-bottom: 1.25rem;
+}
+
+/* 统一节内的三级标题样式 (例如 "Windows 系统") */
+.section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-top: 2.5rem; /* 与上方内容拉开距离 */
+    margin-bottom: 1rem;
+}
+
+/* 链接样式 */
+.section a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.section a:hover {
+    color: #2c5d7f;
+    text-decoration: underline;
+}
+
+/* 列表样式 (ol, ul) */
+.section ul,
+.section ol {
+    padding-left: 25px; /* 标准缩进 */
+    margin-bottom: 1.25rem;
+    color: var(--secondary-color);
+}
+
+.section li {
+    margin-bottom: 0.75rem; /* 列表项之间的间距 */
+}
+
+/* 代码片段样式 (例如 `cmd`) */
+.section code {
+    background-color: var(--shape-color);
+    color: var(--primary-color);
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+/* --- 7. 数据表格样式 --- */
+
+/* 为表格提供一个可滚动的容器，以适应小屏幕 */
+.table-container {
+    overflow-x: auto;
+    border: 1px solid rgba(58, 124, 165, 0.15); /* 使用主题色的淡化版做边框 */
+    border-radius: 8px;
+    margin-top: 1.5rem;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse; /* 合并边框 */
+    font-size: 0.95rem;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(58, 124, 165, 0.15);
+}
+
+/* 表头样式 */
+.data-table thead th {
+    background-color: var(--shape-color);
+    font-weight: 600;
+    color: var(--primary-color);
+    /* 粘性表头，在垂直滚动时固定 */
+    position: sticky;
+    top: 0;
+}
+
+/* 移除最后一行单元格的下边框 */
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 斑马条纹，提升可读性 */
+.data-table tbody tr:nth-of-type(even) {
+    background-color: rgba(255, 255, 255, 0.5); /* 增加一点白色透明度，和背景区分 */
+}
