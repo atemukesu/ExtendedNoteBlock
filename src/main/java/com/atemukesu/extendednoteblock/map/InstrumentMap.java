@@ -69,7 +69,7 @@ public final class InstrumentMap {
         blockIndexMap.put("minecraft:waxed_cut_copper", 56);
         blockIndexMap.put("minecraft:waxed_exposed_cut_copper", 57);
         blockIndexMap.put("minecraft:waxed_copper_block", 58);
-        blockIndexMap.put("minecraft:waxed_cut_copper", 59);
+        blockIndexMap.put("minecraft:waxed_weathered_cut_copper", 59);
         blockIndexMap.put("minecraft:copper_ore", 60);
         blockIndexMap.put("minecraft:waxed_oxidized_copper", 61);
         blockIndexMap.put("minecraft:diamond_block", 62);
@@ -89,7 +89,7 @@ public final class InstrumentMap {
         blockIndexMap.put("minecraft:tinted_glass", 76);
         blockIndexMap.put("minecraft:cherry_log", 77);
         blockIndexMap.put("minecraft:iron_bars", 78);
-        blockIndexMap.put("minecraft:mud_bricks", 79);
+        blockIndexMap.put("minecraft:packed_mud", 79);
         blockIndexMap.put("minecraft:emerald_block", 80);
         blockIndexMap.put("minecraft:emerald_ore", 81);
         blockIndexMap.put("minecraft:lapis_block", 82);
@@ -114,7 +114,7 @@ public final class InstrumentMap {
         blockIndexMap.put("minecraft:deepslate_emerald_ore", 101);
         blockIndexMap.put("minecraft:reinforced_deepslate", 102);
         blockIndexMap.put("minecraft:polished_blackstone", 103);
-        blockIndexMap.put("minecraft:sandstone", 104);
+        blockIndexMap.put("minecraft:barrel", 104);
         blockIndexMap.put("minecraft:orange_concrete", 105);
         blockIndexMap.put("minecraft:red_sandstone", 106);
         blockIndexMap.put("minecraft:chiseled_quartz_block", 107);
@@ -129,7 +129,7 @@ public final class InstrumentMap {
         blockIndexMap.put("minecraft:crimson_hyphae", 116);
         blockIndexMap.put("minecraft:warped_hyphae", 117);
         blockIndexMap.put("minecraft:honeycomb_block", 118);
-        blockIndexMap.put("minecraft:glass", 119);
+        blockIndexMap.put("minecraft:bell", 119);
         blockIndexMap.put("minecraft:polished_andesite", 120);
         blockIndexMap.put("minecraft:lime_wool", 121);
         blockIndexMap.put("minecraft:dark_prismarine", 122);
