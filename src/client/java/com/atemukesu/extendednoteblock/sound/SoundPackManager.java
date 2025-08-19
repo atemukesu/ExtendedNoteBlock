@@ -199,14 +199,22 @@ public class SoundPackManager {
                 ? Text.translatable("gui.extendednoteblock.pack_manager.default_pack_name").getString()
                 : json.get("displayName").getAsString();
         String sourceSf2Name = json.get("sourceSf2Name").getAsString();
+
+        boolean isFull = false;
+        if (json.has("full")) {
+            isFull = json.get("full").getAsBoolean();
+        }
+
         Path sourceSf2Path = sourcesDir.resolve(sourceSf2Name);
 
         SoundPackInfo.Status status = checkPackCompleteness(packPath);
         if (!Files.exists(sourceSf2Path)) {
             status = SoundPackInfo.Status.SOURCE_MISSING;
         }
-        availablePacks.add(new SoundPackInfo(id, displayName, packPath, sourceSf2Path, status));
-        LOGGER.info("Successfully loaded sound pack: '{}' (ID: {})", displayName, id);
+
+        // 在构造函数中传入 isFull
+        availablePacks.add(new SoundPackInfo(id, displayName, packPath, sourceSf2Path, status, isFull));
+        LOGGER.info("Successfully loaded sound pack: '{}' (ID: {}), Full-Render: {}", displayName, id, isFull);
     }
 
     /**
@@ -440,13 +448,15 @@ public class SoundPackManager {
             JsonObject json = new JsonObject();
             json.addProperty("displayName", displayName);
             json.addProperty("sourceSf2Name", sourceSf2Path.getFileName().toString());
+            json.addProperty("full", false);
 
             try (FileWriter writer = new FileWriter(packDir.resolve(PACK_CONFIG_FILE).toFile())) {
                 GSON.toJson(json, writer);
             }
 
+            // 注意：这里的 SoundPackInfo 构造函数需要匹配
             SoundPackInfo newPackInfo = new SoundPackInfo(id, displayName, packDir, sourceSf2Path,
-                    SoundPackInfo.Status.NOT_RENDERED);
+                    SoundPackInfo.Status.NOT_RENDERED, false); // full 设置为 false
             if (addToAvailable) {
                 this.availablePacks.add(newPackInfo);
             }

@@ -7,7 +7,9 @@ public record SoundPackInfo(
         String displayName,
         Path directory,
         Path sourceSf2Path,
-        Status status) {
+        Status status,
+        boolean full
+        ) {
     public enum Status {
         // 标准
         OK,

@@ -14,23 +14,39 @@ public class ClientSoundManager {
 
     public static void playSound(BlockPos pos, int instrumentId, int note, int velocity, int sustainTicks) {
         stopSound(pos);
+
+        // 获取当前激活的音色包信息
+        SoundPackInfo activePack = SoundPackManager.getInstance().getActivePackInfo();
+        boolean isFullRender = activePack != null && activePack.full(); 
+
         float pitch;
         int soundKey;
+
+        // 鼓组的逻辑保持不变
         if (instrumentId == DRUM_KIT_INSTRUMENT_ID) {
             pitch = 1.0f;
             soundKey = note;
-        } else {
+        }
+        // 如果是全渲染音色包，直接使用音符作为key，音高为1.0
+        else if (isFullRender) {
+            pitch = 1.0f;
+            soundKey = note; // 直接使用原始音高作为声音文件的key
+        }
+        // 否则，使用原有的八度音阶 + 变调逻辑
+        else {
             int baseNote = (note / 12) * 12;
             baseNote = Math.max(0, Math.min(120, baseNote));
             int semitoneDifference = note - baseNote;
             pitch = (float) Math.pow(2.0, semitoneDifference / 12.0);
             soundKey = baseNote;
         }
+
         Identifier soundId = new Identifier("extendednoteblock", "notes." + instrumentId + "." + soundKey);
         SoundEvent soundEvent = SoundEvent.of(soundId);
         float volume = (Math.max(0.0f, Math.min(1.0f, velocity / 127.0f)));
         StoppablePositionalSoundInstance soundInstance = new StoppablePositionalSoundInstance(
                 soundEvent, SoundCategory.RECORDS, volume, pitch, pos, sustainTicks);
+
         PLAYING_SOUNDS.put(pos, soundInstance);
         MinecraftClient.getInstance().getSoundManager().play(soundInstance);
     }
