@@ -28,7 +28,7 @@ public class ClientSoundManager {
         }
         Identifier soundId = new Identifier("extendednoteblock", "notes." + instrumentId + "." + soundKey);
         SoundEvent soundEvent = SoundEvent.of(soundId);
-        float volume = (Math.max(0.0f, Math.min(1.0f, velocity / 127.0f))) * 3.0f;
+        float volume = (Math.max(0.0f, Math.min(1.0f, velocity / 127.0f)));
         StoppablePositionalSoundInstance soundInstance = new StoppablePositionalSoundInstance(
                 soundEvent, SoundCategory.RECORDS, volume, pitch, pos, sustainTicks);
         PLAYING_SOUNDS.put(pos, soundInstance);

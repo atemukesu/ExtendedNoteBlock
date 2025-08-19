@@ -29,11 +29,12 @@ public class ExtendedNoteBlockScreenHandler extends ScreenHandler {
     public ExtendedNoteBlockScreenHandler(int syncId, PlayerInventory inventory, PacketByteBuf buf) {
         this(syncId, inventory,
                 (ExtendedNoteBlockEntity) inventory.player.getWorld().getBlockEntity(buf.readBlockPos()),
-                new ArrayPropertyDelegate(4));
-        this.propertyDelegate.set(0, buf.readInt());
-        this.propertyDelegate.set(1, buf.readInt());
-        this.propertyDelegate.set(2, buf.readInt());
-        this.propertyDelegate.set(3, buf.readInt());
+                new ArrayPropertyDelegate(5));
+        this.propertyDelegate.set(0, buf.readInt()); // note
+        this.propertyDelegate.set(1, buf.readInt()); // velocity
+        this.propertyDelegate.set(2, buf.readInt()); // sustain
+        this.propertyDelegate.set(3, buf.readInt()); // instrumentId
+        this.propertyDelegate.set(4, buf.readInt()); // delayedPlayingTime
     }
 
     public int getNote() {
@@ -50,6 +51,10 @@ public class ExtendedNoteBlockScreenHandler extends ScreenHandler {
 
     public int getInstrumentId() {
         return this.propertyDelegate.get(3);
+    }
+
+    public int getDelayedPlayingTime() {
+        return this.propertyDelegate.get(4); // <-- 使用新的索引
     }
 
     @Override

@@ -50,6 +50,10 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
      * MIDI 力度值 (0-127)，影响音符的音量。
      */
     private int velocity = 100;
+    /**
+     * 延迟播放时间 (0-5000)，决定了音符将在接受到红石信号的何时开始播放。
+     */
+    private int delayedPlayingTime = 0;
 
     public ExtendedNoteBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.EXTENDED_NOTE_BLOCK_ENTITY, pos, state);
@@ -71,7 +75,8 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
                 case 0 -> ExtendedNoteBlockEntity.this.note;
                 case 1 -> ExtendedNoteBlockEntity.this.velocity;
                 case 2 -> ExtendedNoteBlockEntity.this.sustainTime;
-                case 3 -> ExtendedNoteBlockEntity.this.getInstrumentId(); // 动态计算
+                case 3 -> ExtendedNoteBlockEntity.this.getInstrumentId();
+                case 4 -> ExtendedNoteBlockEntity.this.delayedPlayingTime;
                 default -> 0;
             };
         }
@@ -82,15 +87,14 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
                 case 0 -> ExtendedNoteBlockEntity.this.note = value;
                 case 1 -> ExtendedNoteBlockEntity.this.velocity = value;
                 case 2 -> ExtendedNoteBlockEntity.this.sustainTime = value;
+                case 4 -> ExtendedNoteBlockEntity.this.delayedPlayingTime = value;
             }
-            // 当数据从客户端通过 ScreenHandler 改变时，标记为脏数据以保存。
             ExtendedNoteBlockEntity.this.markDirty();
         }
 
         @Override
         public int size() {
-            // 我们同步4个整数属性。
-            return 4;
+            return 5;
         }
     };
 
@@ -104,6 +108,7 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         nbt.putInt("note", note);
         nbt.putInt("sustainTime", sustainTime);
         nbt.putInt("velocity", velocity);
+        nbt.putInt("delayedPlayingTime", delayedPlayingTime);
         super.writeNbt(nbt);
     }
 
@@ -118,6 +123,7 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         this.note = nbt.getInt("note");
         this.sustainTime = nbt.getInt("sustainTime");
         this.velocity = nbt.getInt("velocity");
+        this.delayedPlayingTime = nbt.getInt("delayedPlayingTime");
     }
 
     /**
@@ -185,18 +191,29 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
     }
 
     /**
+     * 获取当前设置的延迟播放时间。
+     *
+     * @return 延迟时间 (毫秒)。
+     */
+    public int getDelayedPlayingTime() {
+        return this.delayedPlayingTime;
+    }
+
+    /**
      * 从服务器更新方块实体的数值，通常由数据包调用。
      * 会对输入值进行范围检查，确保它们在有效范围内。
      *
      * @param note     新的音高 (0-127)。
      * @param velocity 新的力度 (0-127)。
      * @param sustain  新的持续时间 (0-400)。
+     * @param delay    新的延迟时间 (0-5000)。
      */
-    public void updateValues(int note, int velocity, int sustain) {
+    public void updateValues(int note, int velocity, int sustain, int delay) {
         this.note = Math.max(0, Math.min(127, note));
         this.velocity = Math.max(0, Math.min(127, velocity));
         this.sustainTime = Math.max(0, Math.min(400, sustain));
-        markDirty(); // 标记为脏数据，以便保存并通知客户端更新。
+        this.delayedPlayingTime = Math.max(0, Math.min(5000, delay));
+        markDirty();
     }
 
     /**
@@ -252,5 +269,6 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         buf.writeInt(this.velocity);
         buf.writeInt(this.sustainTime);
         buf.writeInt(this.getInstrumentId());
+        buf.writeInt(this.delayedPlayingTime);
     }
 }

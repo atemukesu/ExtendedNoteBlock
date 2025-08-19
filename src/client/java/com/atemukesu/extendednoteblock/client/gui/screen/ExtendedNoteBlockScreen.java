@@ -33,6 +33,7 @@ import java.util.function.Consumer;
  * <li><b>乐器(Instrument):</b> 通过一个下拉组合框选择 General MIDI 乐器。</li>
  * <li><b>力度(Velocity):</b> 通过文本框设置音符的力度。</li>
  * <li><b>延音(Sustain):</b> 通过文本框设置音符的延音时长（以游戏刻为单位）。</li>
+ * <li><b>延迟播放时间(DelayedPlayingTime):</b> 通过文本框设置在接收到红石信号之后延迟多久播放音符 (以 ms 为单位)。
  * </ul>
  * 当屏幕关闭时，所有更改都会通过网络数据包发送到服务器。
  */
@@ -42,8 +43,10 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
     private int velocity;
     private int sustain;
     private int instrumentId;
+    private int delayedPlayingTime;
     private TextFieldWidget velocityField;
     private TextFieldWidget sustainField;
+    private TextFieldWidget delayField;
     private ComboBoxWidget<InstrumentOption> instrumentComboBox;
     private PianoWidget pianoWidget;
     private Text hoveredKeyText = Text.empty();
@@ -102,6 +105,7 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
         this.velocity = handler.getVelocity();
         this.sustain = handler.getSustain();
         this.instrumentId = handler.getInstrumentId();
+        this.delayedPlayingTime = handler.getDelayedPlayingTime();
     }
 
     /**
@@ -139,23 +143,31 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
                 });
         this.addDrawableChild(this.instrumentComboBox);
         currentY += WIDE_ROW_SPACING;
-        int halfWidth = (topControlsWidth - PADDING) / 2;
+        int thirdWidth = (topControlsWidth - PADDING) / 3;
         int velocityX = topControlsX;
-        int sustainX = velocityX + halfWidth + PADDING;
+        int sustainX = velocityX + thirdWidth + PADDING;
+        int delayX = sustainX + thirdWidth + PADDING;
         // 创建并添加力度输入框
-        this.velocityField = new TextFieldWidget(this.textRenderer, velocityX, currentY, halfWidth, 20,
+        this.velocityField = new TextFieldWidget(this.textRenderer, velocityX, currentY, thirdWidth, 20,
                 Text.translatable("gui.extendednoteblock.velocity"));
         this.velocityField.setMaxLength(3);
         this.velocityField.setText(String.valueOf(this.velocity));
         this.velocityField.setChangedListener(text -> this.velocity = parseInteger(text, 0, 127, this.velocity));
         this.addDrawableChild(this.velocityField);
         // 创建并添加延音输入框
-        this.sustainField = new TextFieldWidget(this.textRenderer, sustainX, currentY, halfWidth, 20,
+        this.sustainField = new TextFieldWidget(this.textRenderer, sustainX, currentY, thirdWidth, 20,
                 Text.translatable("gui.extendednoteblock.sustain_ticks"));
         this.sustainField.setMaxLength(3);
         this.sustainField.setText(String.valueOf(this.sustain));
         this.sustainField.setChangedListener(text -> this.sustain = parseInteger(text, 0, 400, this.sustain));
         this.addDrawableChild(this.sustainField);
+        this.delayField = new TextFieldWidget(this.textRenderer, delayX, currentY, thirdWidth, 20,
+                Text.translatable("gui.extendednoteblock.delay_ms"));
+        this.delayField.setMaxLength(4); // 5000 是4位数
+        this.delayField.setText(String.valueOf(this.delayedPlayingTime));
+        this.delayField.setChangedListener(
+                text -> this.delayedPlayingTime = parseInteger(text, 0, 5000, this.delayedPlayingTime));
+        this.addDrawableChild(this.delayField);
     }
 
     /**
@@ -595,8 +607,15 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
         context.drawTextWithShadow(textRenderer, sustainLabel, this.sustainField.getX(), this.sustainField.getY() - 10,
                 0xA0A0A0);
         context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.sustain.info"),
-                this.sustainField.getX() + textRenderer.getWidth(sustainLabel) + 4, this.sustainField.getY() - 10,
+                this.sustainField.getX() + 4, this.sustainField.getY() + this.sustainField.getHeight() + 4,
                 0x808080);
+
+        Text delayLabel = Text.translatable("gui.extendednoteblock.delay_ms");
+        context.drawTextWithShadow(textRenderer, delayLabel, this.delayField.getX(), this.delayField.getY() - 10,
+                0xA0A0A0);
+        // 使用 delayLabel 和 delayField 的坐标来定位提示信息
+        context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.delay_ms.info"),
+                this.delayField.getX() + 4, this.delayField.getY() + this.delayField.getHeight() + 4, 0x808080);
         // 绘制底部中央的悬停提示
         context.drawCenteredTextWithShadow(textRenderer, this.hoveredKeyText, this.width / 2, this.height - 20,
                 0xFFFFFF);
@@ -653,6 +672,7 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
             buf.writeInt(MathHelper.clamp(this.note, 0, 127));
             buf.writeInt(MathHelper.clamp(this.velocity, 0, 127));
             buf.writeInt(MathHelper.clamp(this.sustain, 0, 400));
+            buf.writeInt(MathHelper.clamp(this.delayedPlayingTime, 0, 5000));
             buf.writeInt(MathHelper.clamp(this.instrumentId, 0, 128));
             ClientPlayNetworking.send(ModMessages.UPDATE_NOTE_BLOCK_ID, buf);
         } catch (Exception e) {

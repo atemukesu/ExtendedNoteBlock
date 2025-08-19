@@ -122,5 +122,7 @@
     "gui.extendednoteblock.piano.key_info": "Key: %s (%d)",
     "gui.extendednoteblock.sustain_ticks": "持续游戏刻",
     "gui.extendednoteblock.rendering.log.info.skipped": "已跳过：%s (文件已存在)",
-    "gui.extendednoteblock.create_pack.no_new_sources": "没有 sf2 文件"
+    "gui.extendednoteblock.create_pack.no_new_sources": "没有 sf2 文件",
+    "gui.extendednoteblock.delay_ms": "延迟播放时间:",
+    "gui.extendednoteblock.delay_ms.info": "(单位: ms, 最大5000ms)"
 }

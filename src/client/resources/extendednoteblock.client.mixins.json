@@ -4,7 +4,9 @@
 	"compatibilityLevel": "JAVA_17",
 	"client": [
 		"OptionsScreenMixin",
-		"MinecraftClientMixin"
+		"MinecraftClientMixin",
+		"SoundEventMixin",
+		"SoundSystemMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -121,5 +121,7 @@
     "gui.extendednoteblock.sustain.info": "(1s = 20 ticks, max 400 ticks)",
     "gui.extendednoteblock.piano.key_info": "Key: %s (%d)",
     "gui.extendednoteblock.sustain_ticks": "Sustain ticks",
-    "gui.extendednoteblock.rendering.log.info.skipped": "Skipped: %s (already exists)"
+    "gui.extendednoteblock.rendering.log.info.skipped": "Skipped: %s (already exists)",
+    "gui.extendednoteblock.delay_ms": "Delay Playback Time:",
+    "gui.extendednoteblock.delay_ms.info": "(Unit: ms, Max 5000ms)"
 }

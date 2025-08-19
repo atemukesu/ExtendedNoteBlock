@@ -1,5 +1,8 @@
 package com.atemukesu.extendednoteblock.block;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 import org.jetbrains.annotations.Nullable;
 import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
 import com.atemukesu.extendednoteblock.network.ModMessages;
@@ -20,8 +23,16 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class ExtendedNoteBlockBlock extends BlockWithEntity {
+
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "ExtendedNoteBlockDelayScheduler");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     public ExtendedNoteBlockBlock(Settings settings) {
         super(settings);
         this.setDefaultState(this.stateManager.getDefaultState().with(Properties.POWERED, false));
@@ -92,10 +103,28 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
             return;
         }
         boolean isPowered = world.isReceivingRedstonePower(pos);
-        if (isPowered != state.get(Properties.POWERED)) {
-            if (isPowered) {
-                this.triggerNote(world, pos);
-            } else {
+        boolean wasPowered = state.get(Properties.POWERED);
+
+        if (isPowered != wasPowered) {
+            // 2. 修改这里的逻辑以实现延迟播放
+            if (isPowered) { // 信号从 关 -> 开
+                if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
+                    int delay = blockEntity.getDelayedPlayingTime();
+                    if (delay > 0) {
+                        // 安排一个延迟任务
+                        scheduler.schedule(() -> {
+                            // 3. 将实际的方块操作交还给服务器主线程执行，确保线程安全！
+                            // 在执行前再次检查方块是否仍然是通电状态，防止在延迟期间信号消失
+                            if (world.getBlockState(pos).isOf(this) && world.getBlockState(pos).get(Properties.POWERED)) {
+                                world.getServer().execute(() -> triggerNote(world, pos));
+                            }
+                        }, delay, TimeUnit.MILLISECONDS);
+                    } else {
+                        // 如果没有延迟，立即触发
+                        this.triggerNote(world, pos);
+                    }
+                }
+            } else { // 信号从 开 -> 关
                 this.stopNote(world, pos);
             }
             world.setBlockState(pos, state.with(Properties.POWERED, isPowered), 3);
