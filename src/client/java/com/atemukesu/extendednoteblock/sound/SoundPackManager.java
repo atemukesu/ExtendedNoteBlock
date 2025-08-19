@@ -207,7 +207,7 @@ public class SoundPackManager {
 
         Path sourceSf2Path = sourcesDir.resolve(sourceSf2Name);
 
-        SoundPackInfo.Status status = checkPackCompleteness(packPath);
+        SoundPackInfo.Status status = checkPackCompleteness(packPath, isFull);
         if (!Files.exists(sourceSf2Path)) {
             status = SoundPackInfo.Status.SOURCE_MISSING;
         }
@@ -223,7 +223,19 @@ public class SoundPackManager {
      * @param packPath 声音包的路径（文件夹或.zip）。
      * @return 声音包的状态（OK, INCOMPLETE, NOT_RENDERED, ERROR）。
      */
-    public SoundPackInfo.Status checkPackCompleteness(Path packPath) {
+    /**
+     * 检查一个声音包内的音频文件是否完整。
+     * 如果包被标记为 'full'，则直接返回 OK。
+     *
+     * @param packPath 声音包的路径（文件夹或.zip）。
+     * @param isFull   该声音包是否为全渲染模式。
+     * @return 声音包的状态（OK, INCOMPLETE, NOT_RENDERED, ERROR）。
+     */
+    public SoundPackInfo.Status checkPackCompleteness(Path packPath, boolean isFull) {
+        // 如果 pack.json 中 "full" 为 true，我们直接信任它并返回 OK
+        if (isFull) {
+            return SoundPackInfo.Status.OK;
+        }
         List<String> expectedFiles = SoundfontRenderer.getExpectedSoundFiles();
         String soundsBasePath = "assets/" + SoundfontRenderer.MOD_ID + "/sounds/notes/";
         try {
@@ -454,7 +466,6 @@ public class SoundPackManager {
                 GSON.toJson(json, writer);
             }
 
-            // 注意：这里的 SoundPackInfo 构造函数需要匹配
             SoundPackInfo newPackInfo = new SoundPackInfo(id, displayName, packDir, sourceSf2Path,
                     SoundPackInfo.Status.NOT_RENDERED, false); // full 设置为 false
             if (addToAvailable) {
