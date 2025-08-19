@@ -55,7 +55,7 @@ public final class InstrumentMap {
         blockIndexMap.put("minecraft:crimson_planks", 42);
         blockIndexMap.put("minecraft:warped_planks", 43);
         blockIndexMap.put("minecraft:chiseled_stone_bricks", 44);
-        blockIndexMap.put("minecraft:melon_block", 45);
+        blockIndexMap.put("minecraft:melon", 45);
         blockIndexMap.put("minecraft:smooth_sandstone", 46);
         blockIndexMap.put("minecraft:stone", 47);
         blockIndexMap.put("minecraft:calcite", 48);
