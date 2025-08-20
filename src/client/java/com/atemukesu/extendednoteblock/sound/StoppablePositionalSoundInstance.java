@@ -29,7 +29,7 @@ public class StoppablePositionalSoundInstance implements TickableSoundInstance {
         this.volume = volume;
         this.pitch = pitch;
         this.pos = pos;
-        this.repeat = true;
+        this.repeat = false;
         this.repeatDelay = 0;
     }
 

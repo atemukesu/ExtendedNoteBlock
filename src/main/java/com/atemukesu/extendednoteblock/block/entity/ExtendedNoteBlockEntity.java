@@ -21,6 +21,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.ScheduledFuture;
+
 /**
  * 扩展音符盒的方块实体 (Block Entity)。
  *
@@ -62,6 +64,12 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
      * 淡出播放时间 (0-?)，决定音符淡出。
      */
     private int fadeOutTime = 0;
+
+    // [新增] 用于跟踪延迟播放任务，以便在需要时可以取消它。
+    // transient 关键字确保它不会被序列化到NBT中。
+    @Nullable
+    private transient ScheduledFuture<?> scheduledSoundFuture;
+
 
     public ExtendedNoteBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.EXTENDED_NOTE_BLOCK_ENTITY, pos, state);
@@ -109,6 +117,23 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
             return 7;
         }
     };
+    
+    // [新增] 设置并管理延迟声音任务
+    public void setScheduledFuture(@Nullable ScheduledFuture<?> future) {
+        // 在设置新的任务之前，先确保取消任何旧的、还未完成的任务
+        cancelScheduledSound();
+        this.scheduledSoundFuture = future;
+    }
+
+    // [新增] 取消当前预定的声音播放任务
+    public void cancelScheduledSound() {
+        if (this.scheduledSoundFuture != null && !this.scheduledSoundFuture.isDone()) {
+            // false 表示不中断正在执行的任务，对于调度器来说这通常是正确的选择
+            this.scheduledSoundFuture.cancel(false);
+            this.scheduledSoundFuture = null;
+        }
+    }
+
 
     /**
      * 将方块实体的数据写入 NBT 标签，用于世界保存。

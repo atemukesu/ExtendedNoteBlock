@@ -28,7 +28,7 @@ public class ServerSoundManager {
 
     public static void stopSound(ServerWorld world, BlockPos pos) {
         activeSounds.values().stream()
-                .filter(fader -> fader.getPos().equals(pos) && fader.isSustaining())
+                .filter(fader -> fader.getPos().equals(pos))
                 .forEach(ActiveSoundFader::startFadeOut);
     }
 

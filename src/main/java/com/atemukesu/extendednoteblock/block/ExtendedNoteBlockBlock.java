@@ -2,6 +2,8 @@ package com.atemukesu.extendednoteblock.block;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.jetbrains.annotations.Nullable;
 import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
@@ -23,7 +25,6 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
-import java.util.concurrent.TimeUnit;
 
 public class ExtendedNoteBlockBlock extends BlockWithEntity {
 
@@ -99,6 +100,10 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
         if (world.isClient || !(world instanceof ServerWorld serverWorld)) {
             return;
         }
+        // [修改] 在停止声音之前，先取消任何计划中的任务
+        if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
+            blockEntity.cancelScheduledSound();
+        }
         ServerSoundManager.stopSound(serverWorld, pos);
     }
 
@@ -124,23 +129,29 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
         boolean wasPowered = state.get(Properties.POWERED);
 
         if (isPowered != wasPowered) {
-            if (isPowered) {
-                if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
+            if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
+                if (isPowered) { // 信号从 关 -> 开
                     int delay = blockEntity.getDelayedPlayingTime();
                     if (delay > 0) {
-                        scheduler.schedule(() -> {
+                        ScheduledFuture<?> future = scheduler.schedule(() -> {
+                            // 在执行任务前，再次检查方块是否仍然存在且处于充能状态
+                            // 这可以防止在延迟期间方块被破坏或断电后声音依然播放
                             if (world.getBlockState(pos).isOf(this)
                                     && world.getBlockState(pos).get(Properties.POWERED)) {
+                                // 确保在主服务器线程上执行游戏逻辑
                                 world.getServer().execute(() -> triggerNote(world, pos));
                             }
                         }, delay, TimeUnit.MILLISECONDS);
+                        // 将 Future 对象存入方块实体中，以便之后可以取消它
+                        blockEntity.setScheduledFuture(future);
                     } else {
                         // 如果没有延迟，立即触发
                         this.triggerNote(world, pos);
                     }
+                } else {
+                    blockEntity.cancelScheduledSound();
+                    this.stopNote(world, pos);
                 }
-            } else { // 信号从 开 -> 关
-                this.stopNote(world, pos);
             }
             world.setBlockState(pos, state.with(Properties.POWERED, isPowered), 3);
         }
