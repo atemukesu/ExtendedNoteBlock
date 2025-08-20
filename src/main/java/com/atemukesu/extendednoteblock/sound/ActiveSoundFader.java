@@ -1,107 +1,130 @@
 package com.atemukesu.extendednoteblock.sound;
 
-import com.atemukesu.extendednoteblock.network.ModMessages;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import com.atemukesu.extendednoteblock.network.ModMessages;
+
 import java.util.UUID;
 
 public class ActiveSoundFader {
-
-    enum State {
-        FADING_IN, SUSTAINING, FADING_OUT, DONE
-    }
-
     private final ServerWorld world;
     private final BlockPos pos;
     private final UUID soundId;
-    private final int fadeInTicks, fadeOutTicks, sustainTicks;
-    private final float baseVolume;
+    private final int originalVelocity;
+    private final int sustainTicks;
+    private final int fadeInTicks;
+    private final int fadeOutTicks;
 
-    private int ticksInState = 0;
-    private float lastSentVolume = -1.0f;
-    private State currentState = State.FADING_IN;
+    private int currentTick = 0;
+    private float currentVolume = 0.0f;
+    private boolean isFinished = false;
+    private boolean isFadingOut = false;
+    private int fadeOutStartTick = -1;
 
-    public ActiveSoundFader(ServerWorld world, BlockPos pos, UUID soundId, int velocity, int sustain, int fadeIn,
-            int fadeOut) {
+    public ActiveSoundFader(ServerWorld world, BlockPos pos, UUID soundId, int velocity,
+            int sustainTicks, int fadeInTicks, int fadeOutTicks) {
         this.world = world;
         this.pos = pos;
         this.soundId = soundId;
-        this.baseVolume = velocity / 127.0f;
-        this.sustainTicks = sustain;
-        this.fadeInTicks = Math.max(1, fadeIn);
-        this.fadeOutTicks = Math.max(1, fadeOut);
+        this.originalVelocity = velocity;
+        this.sustainTicks = sustainTicks;
+        this.fadeInTicks = Math.max(1, fadeInTicks); // 确保至少为1，避免除零
+        this.fadeOutTicks = Math.max(1, fadeOutTicks); // 确保至少为1，避免除零
+
+        // 如果没有淡入，直接设置为最大音量
+        if (fadeInTicks <= 0) {
+            this.currentVolume = velocity / 127.0f;
+        }
     }
 
     public boolean tick() {
-        if (currentState == State.DONE)
+        if (isFinished) {
             return true;
+        }
 
-        ticksInState++;
-        float currentVolume = calculateCurrentVolume();
+        currentTick++;
 
-        if (Math.abs(currentVolume - lastSentVolume) > 0.01f || (currentVolume == 0 && lastSentVolume != 0)
-                || (currentVolume == baseVolume && lastSentVolume != baseVolume)) {
+        // 淡入阶段
+        if (!isFadingOut && fadeInTicks > 0 && currentTick <= fadeInTicks) {
+            float fadeInProgress = (float) currentTick / fadeInTicks;
+            currentVolume = (originalVelocity / 127.0f) * fadeInProgress;
+
+            // 发送音量更新到客户端
             ModMessages.sendUpdateVolumeToClients(world, pos, soundId, currentVolume);
-            lastSentVolume = currentVolume;
+            return false;
         }
 
-        updateState();
-        return currentState == State.DONE;
-    }
+        // 持续阶段 - 检查是否应该开始淡出
+        if (!isFadingOut) {
+            // 如果没有设置淡入，确保音量正确
+            if (fadeInTicks <= 0) {
+                currentVolume = originalVelocity / 127.0f;
+            }
 
-    private void updateState() {
-        switch (currentState) {
-            case FADING_IN:
-                if (ticksInState >= fadeInTicks) {
-                    currentState = State.SUSTAINING;
-                    ticksInState = 0;
-                }
-                break;
-            case SUSTAINING:
-                int sustainDuration = sustainTicks - fadeInTicks - fadeOutTicks;
-                if (sustainDuration > 0 && ticksInState >= sustainDuration) {
-                    startFadeOut();
-                }
-                break;
-            case FADING_OUT:
-                if (ticksInState >= fadeOutTicks) {
-                    currentState = State.DONE;
-                }
-                break;
-            case DONE:
-                break;
-        }
-    }
+            // 计算总的声音持续时间（不包括淡出时间）
+            int totalSustainTime = fadeInTicks + sustainTicks;
 
-    private float calculateCurrentVolume() {
-        switch (currentState) {
-            case FADING_IN:
-                return baseVolume * ((float) ticksInState / fadeInTicks);
-            case SUSTAINING:
-                return baseVolume;
-            case FADING_OUT:
-                return baseVolume * (1.0f - ((float) ticksInState / fadeOutTicks));
-            default:
-                return 0.0f;
+            if (currentTick >= totalSustainTime) {
+                // 开始淡出
+                startFadeOut();
+                return false;
+            }
+
+            // 在持续阶段保持音量不变
+            return false;
         }
+
+        // 淡出阶段
+        if (isFadingOut && fadeOutStartTick != -1) {
+            int fadeOutProgress = currentTick - fadeOutStartTick;
+
+            if (fadeOutProgress >= fadeOutTicks) {
+                // 淡出完成
+                isFinished = true;
+                return true;
+            }
+
+            // 计算淡出音量
+            float fadeOutRatio = 1.0f - ((float) fadeOutProgress / fadeOutTicks);
+            currentVolume = (originalVelocity / 127.0f) * fadeOutRatio;
+
+            // 发送音量更新到客户端
+            ModMessages.sendUpdateVolumeToClients(world, pos, soundId, currentVolume);
+            return false;
+        }
+
+        return false;
     }
 
     public void startFadeOut() {
-        if (currentState != State.FADING_OUT && currentState != State.DONE) {
-            this.currentState = State.FADING_OUT;
-            this.ticksInState = 0;
-        }
-    }
+        if (!isFadingOut) {
+            isFadingOut = true;
+            fadeOutStartTick = currentTick;
 
-    public BlockPos getPos() {
-        return pos;
+            // 如果没有设置淡出时间，立即结束
+            if (fadeOutTicks <= 0) {
+                isFinished = true;
+            }
+        }
     }
 
     public ServerWorld getWorld() {
         return world;
     }
 
-    public boolean isSustaining() {
-        return currentState == State.SUSTAINING;
+    public BlockPos getPos() {
+        return pos;
+    }
+
+    public UUID getSoundId() {
+        return soundId;
+    }
+
+    public float getCurrentVolume() {
+        return currentVolume;
+    }
+
+    public boolean isFinished() {
+        return isFinished;
     }
 }
