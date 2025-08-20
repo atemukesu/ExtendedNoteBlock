@@ -123,5 +123,9 @@
     "gui.extendednoteblock.sustain_ticks": "Sustain ticks",
     "gui.extendednoteblock.rendering.log.info.skipped": "Skipped: %s (already exists)",
     "gui.extendednoteblock.delay_ms": "Delay Playback Time:",
-    "gui.extendednoteblock.delay_ms.info": "(Unit: ms, Max 5000ms)"
+    "gui.extendednoteblock.delay_ms.info": "(Unit: ms, Max 5000ms)",
+    "gui.extendednoteblock.fadein_time": "Fade In Time",
+    "gui.extendednoteblock.fadein_time.info": "Sum with fade out time must be less than duration",
+    "gui.extendednoteblock.fadeout_time": "Fade Out Time",
+    "gui.extendednoteblock.fadeout_time.info": "Sum with fade in time must be less than duration"
 }

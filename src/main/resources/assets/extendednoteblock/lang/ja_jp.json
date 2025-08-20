@@ -124,5 +124,9 @@
     "gui.extendednoteblock.rendering.log.info.skipped": "スキップ済み：%s (ファイルが既に存在します)",
     "gui.extendednoteblock.create_pack.no_new_sources": "新しい sf2 ファイルが見つかりません",
     "gui.extendednoteblock.delay_ms": "再生遅延時間:",
-    "gui.extendednoteblock.delay_ms.info": "(単位: ms, 最大5000ms)"
+    "gui.extendednoteblock.delay_ms.info": "(単位: ms, 最大5000ms)",
+    "gui.extendednoteblock.fadein_time": "フェードイン時間",
+    "gui.extendednoteblock.fadein_time.info": "フェードアウト時間との合計が再生時間より短くする必要があります",
+    "gui.extendednoteblock.fadeout_time": "フェードアウト時間",
+    "gui.extendednoteblock.fadeout_time.info": "フェードイン時間との合計が再生時間より短くする必要があります"
 }
