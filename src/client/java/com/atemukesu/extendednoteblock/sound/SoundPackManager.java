@@ -208,9 +208,6 @@ public class SoundPackManager {
         Path sourceSf2Path = sourcesDir.resolve(sourceSf2Name);
 
         SoundPackInfo.Status status = checkPackCompleteness(packPath, isFull);
-        if (!Files.exists(sourceSf2Path)) {
-            status = SoundPackInfo.Status.SOURCE_MISSING;
-        }
 
         // 在构造函数中传入 isFull
         availablePacks.add(new SoundPackInfo(id, displayName, packPath, sourceSf2Path, status, isFull));
@@ -241,8 +238,10 @@ public class SoundPackManager {
         try {
             if (Files.isDirectory(packPath)) {
                 Path soundsDir = packPath.resolve(soundsBasePath);
-                if (!Files.exists(soundsDir))
+                if (!Files.exists(soundsDir)) {
+                    LOGGER.info(soundsDir + "Returning NOT_RENDERED.");
                     return SoundPackInfo.Status.NOT_RENDERED;
+                }
                 for (String fileName : expectedFiles) {
                     if (!Files.exists(soundsDir.resolve(fileName))) {
                         return SoundPackInfo.Status.INCOMPLETE;
@@ -251,8 +250,9 @@ public class SoundPackManager {
             } else if (packPath.toString().toLowerCase().endsWith(".zip")) {
                 try (FileSystem fs = FileSystems.newFileSystem(packPath, (ClassLoader) null)) {
                     Path soundsDir = fs.getPath(soundsBasePath);
-                    if (!Files.exists(soundsDir))
+                    if (!Files.exists(soundsDir)) {
                         return SoundPackInfo.Status.NOT_RENDERED;
+                    }
                     for (String fileName : expectedFiles) {
                         if (!Files.exists(soundsDir.resolve(fileName))) {
                             return SoundPackInfo.Status.INCOMPLETE;

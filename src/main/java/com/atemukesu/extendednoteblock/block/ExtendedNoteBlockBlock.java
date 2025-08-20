@@ -5,7 +5,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.jetbrains.annotations.Nullable;
 import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
-import com.atemukesu.extendednoteblock.network.ModMessages;
+import com.atemukesu.extendednoteblock.sound.ServerSoundManager;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -44,9 +44,11 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
     }
 
     private void triggerNote(World world, BlockPos pos) {
-        if (world.isClient || !(world instanceof ServerWorld serverWorld)) {
+        if (world.isClient() || !(world instanceof ServerWorld serverWorld)) {
             return;
         }
+
+        // 生成粒子效果
         if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
             double particleColor = (blockEntity.getNote() % 25) / 24.0D;
             serverWorld.spawnParticles(
@@ -55,33 +57,49 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
                     pos.getY() + 1.2D,
                     pos.getZ() + 0.5D,
                     0, particleColor, 0.0D, 0.0D, 1.0D);
-            ModMessages.sendPlayNoteToClients(serverWorld, pos,
+
+            // 使用新的管理器
+            ServerSoundManager.playSound(
+                    serverWorld,
+                    pos,
                     blockEntity.getInstrumentId(),
                     blockEntity.getNote(),
                     blockEntity.getVelocity(),
-                    blockEntity.getSustain());
+                    blockEntity.getSustain(),
+                    blockEntity.getFadeInTime(),
+                    blockEntity.getFadeOutTime());
         }
     }
 
     public void previewNote(World world, BlockPos pos) {
-        if (world.isClient()) {
+        if (world.isClient() || !(world instanceof ServerWorld serverWorld)) {
             return;
         }
-        this.triggerNote(world, pos);
-        world.scheduleBlockTick(pos, this, 20);
+        if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
+            // 粒子
+            double particleColor = (blockEntity.getNote() % 25) / 24.0D;
+            serverWorld.spawnParticles(
+                    ParticleTypes.NOTE,
+                    pos.getX() + 0.5D,
+                    pos.getY() + 1.2D,
+                    pos.getZ() + 0.5D,
+                    0, particleColor, 0.0D, 0.0D, 1.0D);
+            // 预览：短暂的持续时间，没有淡入淡出
+            ServerSoundManager.playSound(serverWorld, pos, blockEntity.getInstrumentId(), blockEntity.getNote(),
+                    blockEntity.getVelocity(), 20, 1, 5);
+        }
     }
 
     @Override
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos,
             net.minecraft.util.math.random.Random random) {
-        this.stopNote(world, pos);
     }
 
     private void stopNote(World world, BlockPos pos) {
         if (world.isClient || !(world instanceof ServerWorld serverWorld)) {
             return;
         }
-        ModMessages.sendStopNoteToClients(serverWorld, pos);
+        ServerSoundManager.stopSound(serverWorld, pos);
     }
 
     @Override
@@ -106,16 +124,13 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
         boolean wasPowered = state.get(Properties.POWERED);
 
         if (isPowered != wasPowered) {
-            // 2. 修改这里的逻辑以实现延迟播放
-            if (isPowered) { // 信号从 关 -> 开
+            if (isPowered) {
                 if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
                     int delay = blockEntity.getDelayedPlayingTime();
                     if (delay > 0) {
-                        // 安排一个延迟任务
                         scheduler.schedule(() -> {
-                            // 3. 将实际的方块操作交还给服务器主线程执行，确保线程安全！
-                            // 在执行前再次检查方块是否仍然是通电状态，防止在延迟期间信号消失
-                            if (world.getBlockState(pos).isOf(this) && world.getBlockState(pos).get(Properties.POWERED)) {
+                            if (world.getBlockState(pos).isOf(this)
+                                    && world.getBlockState(pos).get(Properties.POWERED)) {
                                 world.getServer().execute(() -> triggerNote(world, pos));
                             }
                         }, delay, TimeUnit.MILLISECONDS);

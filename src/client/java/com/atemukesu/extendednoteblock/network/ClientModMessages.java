@@ -3,6 +3,7 @@ package com.atemukesu.extendednoteblock.network;
 import com.atemukesu.extendednoteblock.sound.ClientSoundManager;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.util.math.BlockPos;
+import java.util.UUID;
 
 /**
  * 负责在客户端注册所有 S2C (服务器到客户端) 数据包的接收器。
@@ -15,25 +16,27 @@ public class ClientModMessages {
      * 这个方法应该在模组的客户端初始化阶段被调用。
      */
     public static void registerS2CPackets() {
-        // 注册 PLAY_NOTE_S2C 数据包的接收器
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.PLAY_NOTE_S2C_ID,
+        ClientPlayNetworking.registerGlobalReceiver(ModMessages.START_SOUND_ID,
                 (client, handler, buf, responseSender) -> {
-                    // 从缓冲区读取数据
                     BlockPos pos = buf.readBlockPos();
+                    UUID soundId = buf.readUuid();
                     int instrumentId = buf.readInt();
                     int note = buf.readInt();
                     int velocity = buf.readInt();
-                    int sustainTicks = buf.readInt();
-                    // 将声音播放逻辑调度到主渲染线程执行，以确保线程安全
-                    client.execute(() -> ClientSoundManager.playSound(pos, instrumentId, note, velocity, sustainTicks));
+                    client.execute(() -> ClientSoundManager.playSound(pos, soundId, instrumentId, note, velocity));
                 });
 
-        // 注册 STOP_NOTE_S2C 数据包的接收器
-        ClientPlayNetworking.registerGlobalReceiver(ModMessages.STOP_NOTE_S2C_ID,
+        ClientPlayNetworking.registerGlobalReceiver(ModMessages.UPDATE_VOLUME_ID,
                 (client, handler, buf, responseSender) -> {
-                    BlockPos pos = buf.readBlockPos();
-                    // 同样，将停止声音的逻辑调度到主线程
-                    client.execute(() -> ClientSoundManager.stopSound(pos));
+                    UUID soundId = buf.readUuid();
+                    float volume = buf.readFloat();
+                    client.execute(() -> ClientSoundManager.updateVolume(soundId, volume));
+                });
+
+        ClientPlayNetworking.registerGlobalReceiver(ModMessages.STOP_SOUND_ID,
+                (client, handler, buf, responseSender) -> {
+                    UUID soundId = buf.readUuid();
+                    client.execute(() -> ClientSoundManager.stopSound(soundId));
                 });
     }
 }

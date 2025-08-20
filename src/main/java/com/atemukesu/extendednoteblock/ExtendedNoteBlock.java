@@ -10,6 +10,7 @@ import com.atemukesu.extendednoteblock.block.entity.ModBlockEntities;
 import com.atemukesu.extendednoteblock.item.ModItemGroups;
 import com.atemukesu.extendednoteblock.network.ModMessages;
 import com.atemukesu.extendednoteblock.screen.ModScreenHandlers;
+import com.atemukesu.extendednoteblock.sound.ServerSoundManager;
 
 public class ExtendedNoteBlock implements ModInitializer {
 	public static final String MOD_ID = "extendednoteblock";
@@ -29,6 +30,7 @@ public class ExtendedNoteBlock implements ModInitializer {
 		ModBlockEntities.registerBlockEntities();
 		ModScreenHandlers.registerScreenHandlers();
         ModMessages.registerC2SPackets();
+		ServerSoundManager.initialize();
 		LOGGER.info("Extended Note Block Loaded.");
 	}
 }

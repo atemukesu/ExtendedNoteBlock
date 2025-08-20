@@ -124,5 +124,9 @@
     "gui.extendednoteblock.rendering.log.info.skipped": "已跳过：%s (文件已存在)",
     "gui.extendednoteblock.create_pack.no_new_sources": "没有 sf2 文件",
     "gui.extendednoteblock.delay_ms": "延迟播放时间:",
-    "gui.extendednoteblock.delay_ms.info": "(单位: ms, 最大5000ms)"
+    "gui.extendednoteblock.delay_ms.info": "(单位: ms, 最大5000ms)",
+    "gui.extendednoteblock.fadein_time": "淡入时间",
+    "gui.extendednoteblock.fadein_time.info": "与淡出时间之和小于持续时间",
+    "gui.extendednoteblock.fadeout_time": "淡出时间",
+    "gui.extendednoteblock.fadeout_time.info": "与淡入时间之和小于持续时间"
 }

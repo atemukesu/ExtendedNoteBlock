@@ -1,5 +1,7 @@
 package com.atemukesu.extendednoteblock.network;
 
+import java.util.UUID;
+
 import com.atemukesu.extendednoteblock.ExtendedNoteBlock;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -22,15 +24,9 @@ public class ModMessages {
      */
     public static final Identifier UPDATE_NOTE_BLOCK_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "update_note_block");
 
-    /**
-     * S2C (Server to Client) 数据包ID：用于通知客户端在指定位置播放一个音符。
-     */
-    public static final Identifier PLAY_NOTE_S2C_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "play_note_s2c");
-
-    /**
-     * S2C (Server to Client) 数据包ID：用于通知客户端停止在指定位置播放的音符。
-     */
-    public static final Identifier STOP_NOTE_S2C_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "stop_note_s2c");
+    public static final Identifier START_SOUND_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "start_sound");
+    public static final Identifier UPDATE_VOLUME_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "update_volume");
+    public static final Identifier STOP_SOUND_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "stop_sound");
 
     /**
      * 在服务器端注册所有 C2S (客户端到服务器) 数据包的接收器。
@@ -40,42 +36,33 @@ public class ModMessages {
         ServerPlayNetworking.registerGlobalReceiver(UPDATE_NOTE_BLOCK_ID, UpdateNoteBlockPacket::receive);
     }
 
-    /**
-     * 向正在追踪指定位置的客户端发送播放音符的指令。
-     *
-     * @param world        服务器世界。
-     * @param pos          音符盒的位置。
-     * @param instrumentId 要播放的乐器ID。
-     * @param note         要播放的MIDI音高。
-     * @param velocity     音符的力度（音量）。
-     * @param sustainTicks 音符的持续时间（游戏刻）。
-     */
-    public static void sendPlayNoteToClients(ServerWorld world, BlockPos pos, int instrumentId, int note, int velocity,
-            int sustainTicks) {
+    public static void sendStartSoundToClients(ServerWorld world, BlockPos pos, UUID soundId, int instrumentId,
+            int note, int velocity) {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeBlockPos(pos);
+        buf.writeUuid(soundId);
         buf.writeInt(instrumentId);
         buf.writeInt(note);
         buf.writeInt(velocity);
-        buf.writeInt(sustainTicks);
-
-        // 使用 PlayerLookup 来高效地找到所有能看到该方块的玩家
         for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
-            ServerPlayNetworking.send(player, PLAY_NOTE_S2C_ID, buf);
+            ServerPlayNetworking.send(player, START_SOUND_ID, buf);
         }
     }
 
-    /**
-     * 向正在追踪指定位置的客户端发送停止音符的指令。
-     *
-     * @param world 服务器世界。
-     * @param pos   音符盒的位置。
-     */
-    public static void sendStopNoteToClients(ServerWorld world, BlockPos pos) {
+    public static void sendUpdateVolumeToClients(ServerWorld world, BlockPos pos, UUID soundId, float volume) {
         PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBlockPos(pos);
+        buf.writeUuid(soundId);
+        buf.writeFloat(volume); // 使用 writeFloat
         for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
-            ServerPlayNetworking.send(player, STOP_NOTE_S2C_ID, buf);
+            ServerPlayNetworking.send(player, UPDATE_VOLUME_ID, buf);
+        }
+    }
+
+    public static void sendStopSoundToClients(ServerWorld world, BlockPos pos, UUID soundId) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeUuid(soundId);
+        for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
+            ServerPlayNetworking.send(player, STOP_SOUND_ID, buf);
         }
     }
 }

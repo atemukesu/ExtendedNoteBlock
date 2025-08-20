@@ -44,9 +44,13 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
     private int sustain;
     private int instrumentId;
     private int delayedPlayingTime;
+    private int fadeInTime;
+    private int fadeOutTime;
     private TextFieldWidget velocityField;
     private TextFieldWidget sustainField;
     private TextFieldWidget delayField;
+    private TextFieldWidget fadeInField;
+    private TextFieldWidget fadeOutField;
     private ComboBoxWidget<InstrumentOption> instrumentComboBox;
     private PianoWidget pianoWidget;
     private Text hoveredKeyText = Text.empty();
@@ -106,6 +110,8 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
         this.sustain = handler.getSustain();
         this.instrumentId = handler.getInstrumentId();
         this.delayedPlayingTime = handler.getDelayedPlayingTime();
+        this.fadeInTime = handler.getFadeInTime();
+        this.fadeOutTime = handler.getFadeOutTime();
     }
 
     /**
@@ -159,15 +165,39 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
                 Text.translatable("gui.extendednoteblock.sustain_ticks"));
         this.sustainField.setMaxLength(3);
         this.sustainField.setText(String.valueOf(this.sustain));
-        this.sustainField.setChangedListener(text -> this.sustain = parseInteger(text, 0, 400, this.sustain));
+        this.sustainField.setChangedListener(text -> {
+            this.sustain = parseInteger(text, 0, 400, this.sustain);
+        });
         this.addDrawableChild(this.sustainField);
-        this.delayField = new TextFieldWidget(this.textRenderer, delayX, currentY, thirdWidth, 20,
+        this.delayField = new TextFieldWidget(this.textRenderer, delayX, currentY, thirdWidth - 10, 20,
                 Text.translatable("gui.extendednoteblock.delay_ms"));
         this.delayField.setMaxLength(4); // 5000 是4位数
         this.delayField.setText(String.valueOf(this.delayedPlayingTime));
         this.delayField.setChangedListener(
                 text -> this.delayedPlayingTime = parseInteger(text, 0, 5000, this.delayedPlayingTime));
         this.addDrawableChild(this.delayField);
+
+        currentY += WIDE_ROW_SPACING + 4; // 换到下一行
+
+        int halfWidth = (topControlsWidth - PADDING) / 2;
+        int fadeInX = topControlsX;
+        int fadeOutX = fadeInX + halfWidth + PADDING;
+        this.fadeInField = new TextFieldWidget(this.textRenderer, fadeInX, currentY, halfWidth, 20,
+                Text.translatable("gui.extendednoteblock.fadein_time"));
+        this.fadeInField.setMaxLength(3);
+        this.fadeInField.setText(String.valueOf(this.fadeInTime));
+        this.fadeInField.setChangedListener(text -> {
+            this.fadeInTime = parseInteger(text, 0, 400, this.fadeInTime);
+        });
+        this.addDrawableChild(this.fadeInField);
+        this.fadeOutField = new TextFieldWidget(this.textRenderer, fadeOutX, currentY, halfWidth, 20,
+                Text.translatable("gui.extendednoteblock.fadeout_time"));
+        this.fadeOutField.setMaxLength(3);
+        this.fadeOutField.setChangedListener(text -> {
+            this.fadeOutTime = parseInteger(text, 0, 400, this.fadeOutTime);
+        });
+        this.fadeOutField.setChangedListener(text -> this.fadeOutTime = parseInteger(text, 0, 400, this.fadeOutTime));
+        this.addDrawableChild(this.fadeOutField);
     }
 
     /**
@@ -616,6 +646,17 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
         // 使用 delayLabel 和 delayField 的坐标来定位提示信息
         context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.delay_ms.info"),
                 this.delayField.getX() + 4, this.delayField.getY() + this.delayField.getHeight() + 4, 0x808080);
+        context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.fadein_time"),
+                this.fadeInField.getX(), this.fadeInField.getY() - 10, 0xA0A0A0);
+        context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.fadein_time.info"),
+                this.fadeInField.getX() + 4, this.fadeInField.getY() + this.fadeInField.getHeight() + 4, 0x808080);
+
+        // 绘制淡出时间的标签和信息
+        context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.fadeout_time"),
+                this.fadeOutField.getX(), this.fadeOutField.getY() - 10, 0xA0A0A0);
+        context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.fadeout_time.info"),
+                this.fadeOutField.getX() + 4, this.fadeOutField.getY() + this.fadeOutField.getHeight() + 4, 0x808080);
+
         // 绘制底部中央的悬停提示
         context.drawCenteredTextWithShadow(textRenderer, this.hoveredKeyText, this.width / 2, this.height - 20,
                 0xFFFFFF);
@@ -667,14 +708,38 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
      */
     private void sendUpdatePacket() {
         try {
+
+            int finalNote = MathHelper.clamp(this.note, 0, 127);
+            int finalVelocity = MathHelper.clamp(this.velocity, 0, 127);
+            int finalSustain = MathHelper.clamp(this.sustain, 0, 400);
+            int finalDelayedPlayingTime = MathHelper.clamp(this.delayedPlayingTime, 0, 5000);
+            int finalInstrumentId = MathHelper.clamp(this.instrumentId, 0, 128);
+            int finalFadeIn = MathHelper.clamp(this.fadeInTime, 0, 400);
+            int finalFadeOut = MathHelper.clamp(this.fadeOutTime, 0, 400);
+
+            // 规则：淡入时间不能超过总持续时间
+            if (finalFadeIn > finalSustain) {
+                finalFadeIn = finalSustain;
+            }
+
+            // 规则：淡入和淡出时间总和不能超过总持续时间
+            // 如果超过，则缩减淡出时间以适应
+            if (finalFadeIn + finalFadeOut > finalSustain) {
+                finalFadeOut = finalSustain - finalFadeIn;
+            }
+
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeBlockPos(this.handler.blockPos);
-            buf.writeInt(MathHelper.clamp(this.note, 0, 127));
-            buf.writeInt(MathHelper.clamp(this.velocity, 0, 127));
-            buf.writeInt(MathHelper.clamp(this.sustain, 0, 400));
-            buf.writeInt(MathHelper.clamp(this.delayedPlayingTime, 0, 5000));
-            buf.writeInt(MathHelper.clamp(this.instrumentId, 0, 128));
+            buf.writeInt(finalNote);
+            buf.writeInt(finalVelocity);
+            buf.writeInt(finalSustain);
+            buf.writeInt(finalDelayedPlayingTime);
+            buf.writeInt(finalFadeIn);
+            buf.writeInt(finalFadeOut);
+            buf.writeInt(finalInstrumentId);
+
             ClientPlayNetworking.send(ModMessages.UPDATE_NOTE_BLOCK_ID, buf);
+
         } catch (Exception e) {
             System.err.println("Failed to send note block update packet: " + e.getMessage());
         }

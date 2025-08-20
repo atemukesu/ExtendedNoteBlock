@@ -6,23 +6,22 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientSoundManager {
-    private static final Map<BlockPos, StoppablePositionalSoundInstance> PLAYING_SOUNDS = new ConcurrentHashMap<>();
+    private static final Map<UUID, StoppablePositionalSoundInstance> PLAYING_SOUNDS = new ConcurrentHashMap<>();
     private static final int DRUM_KIT_INSTRUMENT_ID = 128;
 
-    public static void playSound(BlockPos pos, int instrumentId, int note, int velocity, int sustainTicks) {
-        stopSound(pos);
-
+    public static void playSound(BlockPos pos, UUID soundId, int instrumentId, int note, int velocity) {
+        stopSound(soundId); // 先用ID停止，确保不会重复
         // 获取当前激活的音色包信息
         SoundPackInfo activePack = SoundPackManager.getInstance().getActivePackInfo();
-        boolean isFullRender = activePack != null && activePack.full(); 
+        boolean isFullRender = activePack != null && activePack.full();
 
         float pitch;
         int soundKey;
 
-        // 鼓组的逻辑保持不变
         if (instrumentId == DRUM_KIT_INSTRUMENT_ID) {
             pitch = 1.0f;
             soundKey = note;
@@ -41,20 +40,40 @@ public class ClientSoundManager {
             soundKey = baseNote;
         }
 
-        Identifier soundId = new Identifier("extendednoteblock", "notes." + instrumentId + "." + soundKey);
-        SoundEvent soundEvent = SoundEvent.of(soundId);
-        float volume = (Math.max(0.0f, Math.min(1.0f, velocity / 127.0f)));
+        Identifier soundIdentifier  = new Identifier("extendednoteblock", "notes." + instrumentId + "." + soundKey);
+        SoundEvent soundEvent = SoundEvent.of(soundIdentifier);
+        // float volume = (Math.max(0.0f, Math.min(1.0f, velocity / 127.0f)));
         StoppablePositionalSoundInstance soundInstance = new StoppablePositionalSoundInstance(
-                soundEvent, SoundCategory.RECORDS, volume, pitch, pos, sustainTicks);
+                soundEvent, SoundCategory.RECORDS, 0.001f, pitch, pos, 0); // sustainTicks 不再由客户端管理
 
-        PLAYING_SOUNDS.put(pos, soundInstance);
+        PLAYING_SOUNDS.put(soundId, soundInstance);
         MinecraftClient.getInstance().getSoundManager().play(soundInstance);
+
     }
 
-    public static void stopSound(BlockPos pos) {
-        StoppablePositionalSoundInstance existingSound = PLAYING_SOUNDS.remove(pos);
+    public static void updateVolume(UUID soundId, float volume) {
+        StoppablePositionalSoundInstance soundInstance = PLAYING_SOUNDS.get(soundId);
+        if (soundInstance != null) {
+            soundInstance.setVolume(volume);
+        }
+    }
+
+    public static void stopSound(UUID soundId) {
+        StoppablePositionalSoundInstance existingSound = PLAYING_SOUNDS.remove(soundId);
         if (existingSound != null) {
             existingSound.stopSound();
         }
+    }
+
+    // 暂时保留，但服务器逻辑不会用它
+    // 兼容性而保留
+    public static void stopSound(BlockPos pos) {
+        PLAYING_SOUNDS.values().removeIf(sound -> {
+            if (sound.getPos().equals(pos)) {
+                sound.stopSound();
+                return true;
+            }
+            return false;
+        });
     }
 }

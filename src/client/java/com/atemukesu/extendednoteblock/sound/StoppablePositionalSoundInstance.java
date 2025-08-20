@@ -14,12 +14,11 @@ public class StoppablePositionalSoundInstance implements TickableSoundInstance {
     private final BlockPos pos;
     private final SoundEvent soundEvent;
     private final SoundCategory category;
-    private final float volume;
+    private float volume;
     private final float pitch;
     private final boolean repeat;
     private final int repeatDelay;
     private boolean done = false;
-    private int lifeTime;
     @Nullable
     private WeightedSoundSet soundSet;
 
@@ -30,7 +29,6 @@ public class StoppablePositionalSoundInstance implements TickableSoundInstance {
         this.volume = volume;
         this.pitch = pitch;
         this.pos = pos;
-        this.lifeTime = sustainTicks;
         this.repeat = true;
         this.repeatDelay = 0;
     }
@@ -77,6 +75,10 @@ public class StoppablePositionalSoundInstance implements TickableSoundInstance {
         return this.volume;
     }
 
+    public void setVolume(float newVolume) {
+        this.volume = newVolume;
+    }
+
     @Override
     public float getPitch() {
         return this.pitch;
@@ -109,9 +111,6 @@ public class StoppablePositionalSoundInstance implements TickableSoundInstance {
 
     @Override
     public void tick() {
-        if (this.lifeTime-- <= 0) {
-            this.done = true;
-        }
     }
 
     @Override

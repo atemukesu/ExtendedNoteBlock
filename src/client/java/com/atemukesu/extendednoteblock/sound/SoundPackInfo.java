@@ -17,8 +17,6 @@ public record SoundPackInfo(
         INCOMPLETE,
         // 没有渲染
         NOT_RENDERED,
-        // 源文件丢失
-        SOURCE_MISSING,
         ERROR
     }
 }

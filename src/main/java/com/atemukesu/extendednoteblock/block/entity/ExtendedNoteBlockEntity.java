@@ -54,6 +54,14 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
      * 延迟播放时间 (0-5000)，决定了音符将在接受到红石信号的何时开始播放。
      */
     private int delayedPlayingTime = 0;
+    /**
+     * 淡入播放时间 (0-?)，决定音符的淡入。
+     */
+    private int fadeInTime = 0;
+    /**
+     * 淡出播放时间 (0-?)，决定音符淡出。
+     */
+    private int fadeOutTime = 0;
 
     public ExtendedNoteBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.EXTENDED_NOTE_BLOCK_ENTITY, pos, state);
@@ -75,8 +83,10 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
                 case 0 -> ExtendedNoteBlockEntity.this.note;
                 case 1 -> ExtendedNoteBlockEntity.this.velocity;
                 case 2 -> ExtendedNoteBlockEntity.this.sustainTime;
-                case 3 -> ExtendedNoteBlockEntity.this.getInstrumentId();
-                case 4 -> ExtendedNoteBlockEntity.this.delayedPlayingTime;
+                case 3 -> ExtendedNoteBlockEntity.this.delayedPlayingTime;
+                case 4 -> ExtendedNoteBlockEntity.this.fadeInTime;
+                case 5 -> ExtendedNoteBlockEntity.this.fadeOutTime;
+                case 6 -> ExtendedNoteBlockEntity.this.getInstrumentId();
                 default -> 0;
             };
         }
@@ -87,14 +97,16 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
                 case 0 -> ExtendedNoteBlockEntity.this.note = value;
                 case 1 -> ExtendedNoteBlockEntity.this.velocity = value;
                 case 2 -> ExtendedNoteBlockEntity.this.sustainTime = value;
-                case 4 -> ExtendedNoteBlockEntity.this.delayedPlayingTime = value;
+                case 3 -> ExtendedNoteBlockEntity.this.delayedPlayingTime = value;
+                case 4 -> ExtendedNoteBlockEntity.this.fadeInTime = value;
+                case 5 -> ExtendedNoteBlockEntity.this.fadeOutTime = value;
             }
             ExtendedNoteBlockEntity.this.markDirty();
         }
 
         @Override
         public int size() {
-            return 5;
+            return 7;
         }
     };
 
@@ -109,6 +121,8 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         nbt.putInt("sustainTime", sustainTime);
         nbt.putInt("velocity", velocity);
         nbt.putInt("delayedPlayingTime", delayedPlayingTime);
+        nbt.putInt("fadeInTime", fadeInTime);
+        nbt.putInt("fadeOutTime", fadeOutTime);
         super.writeNbt(nbt);
     }
 
@@ -124,6 +138,8 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         this.sustainTime = nbt.getInt("sustainTime");
         this.velocity = nbt.getInt("velocity");
         this.delayedPlayingTime = nbt.getInt("delayedPlayingTime");
+        this.fadeInTime = nbt.getInt("fadeInTime");
+        this.fadeOutTime = nbt.getInt("fadeOutTime");
     }
 
     /**
@@ -200,6 +216,24 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
     }
 
     /**
+     * 获取当前设置的淡入时间。
+     *
+     * @return 淡入时间 (刻)。
+     */
+    public int getFadeInTime() {
+        return this.fadeInTime;
+    }
+
+    /**
+     * 获取当前设置的淡出时间。
+     *
+     * @return 淡出时间 (刻)。
+     */
+    public int getFadeOutTime() {
+        return this.fadeOutTime;
+    }
+
+    /**
      * 从服务器更新方块实体的数值，通常由数据包调用。
      * 会对输入值进行范围检查，确保它们在有效范围内。
      *
@@ -208,11 +242,13 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
      * @param sustain  新的持续时间 (0-400)。
      * @param delay    新的延迟时间 (0-5000)。
      */
-    public void updateValues(int note, int velocity, int sustain, int delay) {
+    public void updateValues(int note, int velocity, int sustain, int delay, int fadeIn, int fadeOut) {
         this.note = Math.max(0, Math.min(127, note));
         this.velocity = Math.max(0, Math.min(127, velocity));
         this.sustainTime = Math.max(0, Math.min(400, sustain));
         this.delayedPlayingTime = Math.max(0, Math.min(5000, delay));
+        this.fadeInTime = Math.max(0, Math.min(5000, fadeIn));
+        this.fadeOutTime = Math.max(0, Math.min(5000, fadeOut));
         markDirty();
     }
 
@@ -268,7 +304,9 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         buf.writeInt(this.note);
         buf.writeInt(this.velocity);
         buf.writeInt(this.sustainTime);
-        buf.writeInt(this.getInstrumentId());
         buf.writeInt(this.delayedPlayingTime);
+        buf.writeInt(this.fadeInTime);
+        buf.writeInt(this.fadeOutTime);
+        buf.writeInt(this.getInstrumentId());
     }
 }

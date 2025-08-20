@@ -43,6 +43,8 @@ public class UpdateNoteBlockPacket {
         int velocity = MathHelper.clamp(buf.readInt(), 0, 127);
         int sustain = MathHelper.clamp(buf.readInt(), 0, 400);
         int delay = MathHelper.clamp(buf.readInt(), 0, 5000);
+        int fadeIn = MathHelper.clamp(buf.readInt(), 0, 400);
+        int fadeOut = MathHelper.clamp(buf.readInt(), 0, 400);
         int instrumentId = buf.readInt();
 
         // 将逻辑切换到主线程执行
@@ -52,7 +54,7 @@ public class UpdateNoteBlockPacket {
             // 验证目标位置是否存在正确的方块实体
             if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity entity) {
                 // 更新方块实体的数值
-                entity.updateValues(note, velocity, sustain, delay);
+                entity.updateValues(note, velocity, sustain, delay, fadeIn, fadeOut);
 
                 // 根据选择的乐器ID，尝试更新音符盒下方的方块
                 updateInstrumentBlock(player, world, pos, instrumentId);
