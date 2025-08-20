@@ -193,10 +193,10 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
         this.fadeOutField = new TextFieldWidget(this.textRenderer, fadeOutX, currentY, halfWidth, 20,
                 Text.translatable("gui.extendednoteblock.fadeout_time"));
         this.fadeOutField.setMaxLength(3);
+        this.fadeOutField.setText(String.valueOf(this.fadeOutTime));
         this.fadeOutField.setChangedListener(text -> {
             this.fadeOutTime = parseInteger(text, 0, 400, this.fadeOutTime);
         });
-        this.fadeOutField.setChangedListener(text -> this.fadeOutTime = parseInteger(text, 0, 400, this.fadeOutTime));
         this.addDrawableChild(this.fadeOutField);
     }
 
@@ -717,15 +717,20 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
             int finalFadeIn = MathHelper.clamp(this.fadeInTime, 0, 400);
             int finalFadeOut = MathHelper.clamp(this.fadeOutTime, 0, 400);
 
-            // 规则：淡入时间不能超过总持续时间
-            if (finalFadeIn > finalSustain) {
-                finalFadeIn = finalSustain;
+            int maxAllowedSum = (finalSustain * 8) / 10; // 计算80%的阈值
+
+            // 首先确保淡入时间自身不超过限制。
+            // 如果淡入时间大于或等于80%的阈值，则将其强制设置为阈值减1。
+            // 使用 Math.max(0, ...) 来处理 sustain 过小导致阈值为0的情况。
+            if (finalFadeIn >= maxAllowedSum) {
+                finalFadeIn = Math.max(0, maxAllowedSum - 1);
             }
 
-            // 规则：淡入和淡出时间总和不能超过总持续时间
-            // 如果超过，则缩减淡出时间以适应
-            if (finalFadeIn + finalFadeOut > finalSustain) {
-                finalFadeOut = finalSustain - finalFadeIn;
+            // 步骤2：在调整了淡入时间后，再检查总和并调整淡出时间。
+            // 确保总和严格小于80%的阈值。
+            if (finalFadeIn + finalFadeOut >= maxAllowedSum) {
+                // 同样，确保淡出时间不会被设置为负数。
+                finalFadeOut = Math.max(0, maxAllowedSum - finalFadeIn - 1);
             }
 
             PacketByteBuf buf = PacketByteBufs.create();
