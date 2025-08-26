@@ -23,7 +23,8 @@ public class ClientModMessages {
                     int instrumentId = buf.readInt();
                     int note = buf.readInt();
                     int velocity = buf.readInt();
-                    client.execute(() -> ClientSoundManager.playSound(pos, soundId, instrumentId, note, velocity));
+                    float initialVolume = buf.readFloat(); // 获取初始音量
+                    client.execute(() -> ClientSoundManager.playSound(pos, soundId, instrumentId, note, velocity, initialVolume));
                 });
 
         ClientPlayNetworking.registerGlobalReceiver(ModMessages.UPDATE_VOLUME_ID,

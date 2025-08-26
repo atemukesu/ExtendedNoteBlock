@@ -37,13 +37,14 @@ public class ModMessages {
     }
 
     public static void sendStartSoundToClients(ServerWorld world, BlockPos pos, UUID soundId, int instrumentId,
-            int note, int velocity) {
+            int note, int velocity, float initialVolume) {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeBlockPos(pos);
         buf.writeUuid(soundId);
         buf.writeInt(instrumentId);
         buf.writeInt(note);
         buf.writeInt(velocity);
+        buf.writeFloat(initialVolume); // 初始音量
         for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
             ServerPlayNetworking.send(player, START_SOUND_ID, buf);
         }

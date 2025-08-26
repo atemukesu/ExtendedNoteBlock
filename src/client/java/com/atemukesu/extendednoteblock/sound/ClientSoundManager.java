@@ -13,7 +13,8 @@ public class ClientSoundManager {
     private static final Map<UUID, StoppablePositionalSoundInstance> PLAYING_SOUNDS = new ConcurrentHashMap<>();
     private static final int DRUM_KIT_INSTRUMENT_ID = 128;
 
-    public static void playSound(BlockPos pos, UUID soundId, int instrumentId, int note, int velocity) {
+    public static void playSound(BlockPos pos, UUID soundId, int instrumentId, int note, int velocity,
+            float initialVolume) {
         stopSound(soundId); // 先用ID停止，确保不会重复
         // 获取当前激活的音色包信息
         SoundPackInfo activePack = SoundPackManager.getInstance().getActivePackInfo();
@@ -40,11 +41,11 @@ public class ClientSoundManager {
             soundKey = baseNote;
         }
 
-        Identifier soundIdentifier  = new Identifier("extendednoteblock", "notes." + instrumentId + "." + soundKey);
+        Identifier soundIdentifier = new Identifier("extendednoteblock", "notes." + instrumentId + "." + soundKey);
         SoundEvent soundEvent = SoundEvent.of(soundIdentifier);
         // float volume = (Math.max(0.0f, Math.min(1.0f, velocity / 127.0f)));
         StoppablePositionalSoundInstance soundInstance = new StoppablePositionalSoundInstance(
-                soundEvent, SoundCategory.RECORDS, 0.001f, pitch, pos, 0); // sustainTicks 不再由客户端管理
+                soundEvent, SoundCategory.RECORDS, initialVolume, pitch, pos, 0); // sustainTicks 不再由客户端管理
 
         PLAYING_SOUNDS.put(soundId, soundInstance);
         MinecraftClient.getInstance().getSoundManager().play(soundInstance);

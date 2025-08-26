@@ -23,7 +23,8 @@ public class ServerSoundManager {
         ActiveSoundFader fader = new ActiveSoundFader(world, pos, soundId, velocity, sustainTicks, fadeInTicks,
                 fadeOutTicks);
         activeSounds.put(soundId, fader);
-        ModMessages.sendStartSoundToClients(world, pos, soundId, instrumentId, note, velocity);
+        float initialVolume = (fadeInTicks <= 1) ? (velocity / 127.0f) : 0.001f; // 音量大小
+        ModMessages.sendStartSoundToClients(world, pos, soundId, instrumentId, note, velocity, initialVolume); // 传递初始音量
     }
 
     public static void stopSound(ServerWorld world, BlockPos pos) {
