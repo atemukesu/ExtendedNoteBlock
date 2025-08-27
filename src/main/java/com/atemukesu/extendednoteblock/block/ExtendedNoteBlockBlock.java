@@ -97,7 +97,7 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
                     0, particleColor, 0.0D, 0.0D, 1.0D);
             // 预览：短暂的持续时间，没有淡入淡出
             ServerSoundManager.playSound(serverWorld, pos, blockEntity.getInstrumentId(), blockEntity.getNote(),
-                    blockEntity.getVelocity(), 20, 1, 3);
+                    blockEntity.getVelocity(), 20, 0, 3);
         }
     }
 
