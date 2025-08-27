@@ -1,10 +1,76 @@
 {
     "variants": {
-        "powered=false": {
-            "model": "extendednoteblock:block/extended_note_block"
+        "powered=false,pitch=c": {
+            "model": "extendednoteblock:block/c"
         },
-        "powered=true": {
-            "model": "extendednoteblock:block/extended_note_block_on"
+        "powered=true,pitch=c": {
+            "model": "extendednoteblock:block/c_on"
+        },
+        "powered=false,pitch=cs": {
+            "model": "extendednoteblock:block/cs"
+        },
+        "powered=true,pitch=cs": {
+            "model": "extendednoteblock:block/cs_on"
+        },
+        "powered=false,pitch=d": {
+            "model": "extendednoteblock:block/d"
+        },
+        "powered=true,pitch=d": {
+            "model": "extendednoteblock:block/d_on"
+        },
+        "powered=false,pitch=ds": {
+            "model": "extendednoteblock:block/ds"
+        },
+        "powered=true,pitch=ds": {
+            "model": "extendednoteblock:block/ds_on"
+        },
+        "powered=false,pitch=e": {
+            "model": "extendednoteblock:block/e"
+        },
+        "powered=true,pitch=e": {
+            "model": "extendednoteblock:block/e_on"
+        },
+        "powered=false,pitch=f": {
+            "model": "extendednoteblock:block/f"
+        },
+        "powered=true,pitch=f": {
+            "model": "extendednoteblock:block/f_on"
+        },
+        "powered=false,pitch=fs": {
+            "model": "extendednoteblock:block/fs"
+        },
+        "powered=true,pitch=fs": {
+            "model": "extendednoteblock:block/fs_on"
+        },
+        "powered=false,pitch=g": {
+            "model": "extendednoteblock:block/g"
+        },
+        "powered=true,pitch=g": {
+            "model": "extendednoteblock:block/g_on"
+        },
+        "powered=false,pitch=gs": {
+            "model": "extendednoteblock:block/gs"
+        },
+        "powered=true,pitch=gs": {
+            "model": "extendednoteblock:block/gs_on"
+        },
+        "powered=false,pitch=a": {
+            "model": "extendednoteblock:block/a"
+        },
+        "powered=true,pitch=a": {
+            "model": "extendednoteblock:block/a_on"
+        },
+        "powered=false,pitch=as": {
+            "model": "extendednoteblock:block/as"
+        },
+        "powered=true,pitch=as": {
+            "model": "extendednoteblock:block/as_on"
+        },
+        "powered=false,pitch=b": {
+            "model": "extendednoteblock:block/b"
+        },
+        "powered=true,pitch=b": {
+            "model": "extendednoteblock:block/b_on"
         }
     }
 }

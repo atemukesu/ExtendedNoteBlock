@@ -8,12 +8,16 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.Nullable;
 import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
 import com.atemukesu.extendednoteblock.sound.ServerSoundManager;
+import com.atemukesu.extendednoteblock.util.NotePitch;
+
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.Block;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -24,9 +28,12 @@ import net.minecraft.state.StateManager;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 
 public class ExtendedNoteBlockBlock extends BlockWithEntity {
+
+    public static final EnumProperty<NotePitch> PITCH = EnumProperty.of("pitch", NotePitch.class);
 
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
         Thread thread = new Thread(runnable, "ExtendedNoteBlockDelayScheduler");
@@ -36,12 +43,15 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
 
     public ExtendedNoteBlockBlock(Settings settings) {
         super(settings);
-        this.setDefaultState(this.stateManager.getDefaultState().with(Properties.POWERED, false));
+        this.setDefaultState(this.stateManager.getDefaultState()
+                .with(Properties.POWERED, false)
+                .with(PITCH, NotePitch.C));
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(Properties.POWERED);
+        builder.add(PITCH);
     }
 
     private void triggerNote(World world, BlockPos pos) {
@@ -87,7 +97,7 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
                     0, particleColor, 0.0D, 0.0D, 1.0D);
             // 预览：短暂的持续时间，没有淡入淡出
             ServerSoundManager.playSound(serverWorld, pos, blockEntity.getInstrumentId(), blockEntity.getNote(),
-                    blockEntity.getVelocity(), 20, 1, 5);
+                    blockEntity.getVelocity(), 20, 1, 3);
         }
     }
 
@@ -125,17 +135,23 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
         if (world.isClient) {
             return;
         }
+
         boolean isPowered = world.isReceivingRedstonePower(pos);
         boolean wasPowered = state.get(Properties.POWERED);
 
         if (isPowered != wasPowered) {
+            // 只获取一次方块实体
             if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
                 if (isPowered) { // 信号从 关 -> 开
+                    // 同步方块状态中的音高
+                    NotePitch correctPitch = NotePitch.fromMidiNote(blockEntity.getNote());
+                    BlockState newState = state.with(Properties.POWERED, true).with(PITCH, correctPitch);
+                    // 更新方块状态
+                    world.setBlockState(pos, newState, Block.NOTIFY_ALL);
                     int delay = blockEntity.getDelayedPlayingTime();
                     if (delay > 0) {
                         ScheduledFuture<?> future = scheduler.schedule(() -> {
                             // 在执行任务前，再次检查方块是否仍然存在且处于充能状态
-                            // 这可以防止在延迟期间方块被破坏或断电后声音依然播放
                             if (world.getBlockState(pos).isOf(this)
                                     && world.getBlockState(pos).get(Properties.POWERED)) {
                                 // 确保在主服务器线程上执行游戏逻辑
@@ -148,12 +164,16 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
                         // 如果没有延迟，立即触发
                         this.triggerNote(world, pos);
                     }
-                } else {
+                } else { // 信号从 开 -> 关
                     blockEntity.cancelScheduledSound();
                     this.stopNote(world, pos);
+                    // 只更新 POWERED 状态
+                    world.setBlockState(pos, state.with(Properties.POWERED, false), Block.NOTIFY_ALL);
                 }
+            } else {
+                // 如果没有方块实体，仅更新 POWERED 状态
+                world.setBlockState(pos, state.with(Properties.POWERED, isPowered), Block.NOTIFY_ALL);
             }
-            world.setBlockState(pos, state.with(Properties.POWERED, isPowered), 3);
         }
     }
 
@@ -177,6 +197,18 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
                 }
             }
             super.onStateReplaced(state, world, pos, newState, moved);
+        }
+    }
+
+    @Override
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer,
+            ItemStack itemStack) {
+        super.onPlaced(world, pos, state, placer, itemStack);
+        if (!world.isClient()) {
+            if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity entity) {
+                NotePitch correctPitch = NotePitch.fromMidiNote(entity.getNote());
+                world.setBlockState(pos, state.with(PITCH, correctPitch), 2);
+            }
         }
     }
 

@@ -1,6 +1,0 @@
-{
-    "parent": "minecraft:block/cube_all",
-    "textures": {
-        "all": "extendednoteblock:block/extended_note_block_on"
-    }
-}

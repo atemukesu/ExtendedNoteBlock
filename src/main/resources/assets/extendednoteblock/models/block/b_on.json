@@ -1,0 +1,7 @@
+{
+  "parent": "block/cube_top",
+  "textures": {
+    "top": "extendednoteblock:block/b_top_on",
+    "side": "extendednoteblock:block/b_side_on"
+  }
+}

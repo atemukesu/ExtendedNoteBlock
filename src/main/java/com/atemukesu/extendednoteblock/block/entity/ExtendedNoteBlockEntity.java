@@ -1,7 +1,10 @@
 package com.atemukesu.extendednoteblock.block.entity;
 
+import com.atemukesu.extendednoteblock.block.ExtendedNoteBlockBlock;
 import com.atemukesu.extendednoteblock.map.InstrumentMap;
 import com.atemukesu.extendednoteblock.screen.ExtendedNoteBlockScreenHandler;
+import com.atemukesu.extendednoteblock.util.NotePitch;
+
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -70,7 +73,6 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
     @Nullable
     private transient ScheduledFuture<?> scheduledSoundFuture;
 
-
     public ExtendedNoteBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.EXTENDED_NOTE_BLOCK_ENTITY, pos, state);
     }
@@ -117,7 +119,7 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
             return 7;
         }
     };
-    
+
     // [新增] 设置并管理延迟声音任务
     public void setScheduledFuture(@Nullable ScheduledFuture<?> future) {
         // 在设置新的任务之前，先确保取消任何旧的、还未完成的任务
@@ -133,7 +135,6 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
             this.scheduledSoundFuture = null;
         }
     }
-
 
     /**
      * 将方块实体的数据写入 NBT 标签，用于世界保存。
@@ -275,6 +276,16 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         this.fadeInTime = Math.max(0, Math.min(5000, fadeIn));
         this.fadeOutTime = Math.max(0, Math.min(5000, fadeOut));
         markDirty();
+        if (world != null && !world.isClient()) {
+            BlockState currentState = world.getBlockState(pos);
+            NotePitch newPitch = NotePitch.fromMidiNote(this.note);
+            if (currentState.getBlock() instanceof ExtendedNoteBlockBlock
+                    && currentState.get(ExtendedNoteBlockBlock.PITCH) != newPitch) {
+                // 更新 PITCH 属性
+                world.setBlockState(pos, currentState.with(ExtendedNoteBlockBlock.PITCH, newPitch),
+                        Block.NOTIFY_LISTENERS);
+            }
+        }
     }
 
     /**
