@@ -165,8 +165,8 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
                         this.triggerNote(world, pos);
                     }
                 } else { // 信号从 开 -> 关
-                    blockEntity.cancelScheduledSound();
-                    this.stopNote(world, pos);
+                    // blockEntity.cancelScheduledSound();
+                    // this.stopNote(world, pos);
                     // 只更新 POWERED 状态
                     world.setBlockState(pos, state.with(Properties.POWERED, false), Block.NOTIFY_ALL);
                 }
