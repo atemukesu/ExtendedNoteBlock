@@ -33,10 +33,12 @@ public class ConfigScreen extends Screen {
         this.ffmpegField = new TextFieldWidget(this.textRenderer, fieldCenterX - fieldWidth / 2, 60, fieldWidth, 20,
                 Text.translatable("gui.extendednoteblock.config.ffmpeg_path.placeholder"));
         this.ffmpegField.setText(config.ffmpegPath);
+        this.ffmpegField.setMaxLength(512);
         this.addDrawableChild(this.ffmpegField);
         this.fluidSynthField = new TextFieldWidget(this.textRenderer, fieldCenterX - fieldWidth / 2, 110, fieldWidth,
                 20, Text.translatable("gui.extendednoteblock.config.fluidsynth_path.placeholder"));
         this.fluidSynthField.setText(config.fluidSynthPath);
+        this.fluidSynthField.setMaxLength(512);
         this.addDrawableChild(this.fluidSynthField);
         this.threadsField = new TextFieldWidget(this.textRenderer, fieldCenterX - fieldWidth / 2, 160, fieldWidth, 20,
                 Text.translatable("gui.extendednoteblock.config.threads.placeholder"));
