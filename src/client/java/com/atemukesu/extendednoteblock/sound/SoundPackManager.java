@@ -45,6 +45,44 @@ public class SoundPackManager {
     private SoundPackManager() {
     }
 
+    private static Map<Integer, Map<Integer, Integer>> createLookupTables(
+            Map<Integer, List<Integer>> availableNotesPerInstrument) {
+        Map<Integer, Map<Integer, Integer>> allLookupTables = new HashMap<>();
+
+        for (Map.Entry<Integer, List<Integer>> entry : availableNotesPerInstrument.entrySet()) {
+            int instrumentId = entry.getKey();
+            List<Integer> availableNotes = entry.getValue();
+
+            if (availableNotes.isEmpty()) {
+                continue;
+            }
+
+            Map<Integer, Integer> singleLookupTable = new HashMap<>();
+            for (int i = 0; i < 128; i++) {
+                singleLookupTable.put(i, findClosestValue(i, availableNotes));
+            }
+            allLookupTables.put(instrumentId, Collections.unmodifiableMap(singleLookupTable));
+        }
+        return Collections.unmodifiableMap(allLookupTables);
+    }
+
+    // 二分查找算法
+    private static int findClosestValue(int target, List<Integer> sortedList) {
+        if (sortedList.isEmpty())
+            return target;
+        int i = Collections.binarySearch(sortedList, target);
+        if (i >= 0)
+            return sortedList.get(i);
+        int insertionPoint = -i - 1;
+        if (insertionPoint == 0)
+            return sortedList.get(0);
+        if (insertionPoint == sortedList.size())
+            return sortedList.get(sortedList.size() - 1);
+        int lower = sortedList.get(insertionPoint - 1);
+        int upper = sortedList.get(insertionPoint);
+        return (target - lower < upper - target) ? lower : upper;
+    }
+
     public static SoundPackManager getInstance() {
         return INSTANCE;
     }
@@ -125,19 +163,22 @@ public class SoundPackManager {
         availablePacks.removeIf(p -> p.id().equals(id));
 
         try {
+            SoundPackInfo packInfo;
             if (isZip) {
-                loadPackFromZip(packPath, id);
+                packInfo = loadPackFromZip(packPath, id);
             } else {
-                updatePackFromDirectory(packPath, id);
+                packInfo = updateAndLoadPackFromDirectory(packPath, id);
             }
+            availablePacks.add(packInfo);
         } catch (Exception e) {
             LOGGER.error("Failed to load or update sound pack '{}'", id, e);
             availablePacks.add(
-                    new SoundPackInfo(id, id, packPath, SoundPackInfo.Status.INVALID, isZip, Collections.emptyMap()));
+                    new SoundPackInfo(id, id, packPath, SoundPackInfo.Status.INVALID, isZip, Collections.emptyMap(),
+                            Collections.emptyMap()));
         }
     }
 
-    private void loadPackFromZip(Path zipPath, String id) throws IOException {
+    private SoundPackInfo loadPackFromZip(Path zipPath, String id) throws IOException {
         try (FileSystem fs = FileSystems.newFileSystem(zipPath, (ClassLoader) null)) {
             Path packConfigFile = fs.getPath(PACK_CONFIG_FILE);
 
@@ -152,15 +193,16 @@ public class SoundPackManager {
             }
 
             Map<Integer, List<Integer>> notesMap = readNotesFromPackJson(json, id);
+            Map<Integer, Map<Integer, Integer>> lookupTables = createLookupTables(notesMap); // <-- 调用新方法
 
             SoundPackInfo.Status status = notesMap.isEmpty() ? SoundPackInfo.Status.EMPTY : SoundPackInfo.Status.OK;
-            availablePacks.add(
-                    new SoundPackInfo(id, displayName, zipPath, status, true, Collections.unmodifiableMap(notesMap)));
             LOGGER.info("Loaded sound pack from zip: '{}' (ID: {})", displayName, id);
+            return new SoundPackInfo(id, displayName, zipPath, status, true, Collections.unmodifiableMap(notesMap),
+                    lookupTables);
         }
     }
 
-    private void updatePackFromDirectory(Path packPath, String id) throws IOException {
+    private SoundPackInfo updateAndLoadPackFromDirectory(Path packPath, String id) throws IOException {
         // *** 核心修改: 确保 pack.mcmeta 存在 ***
         generatePackMcMeta(packPath);
 
@@ -190,10 +232,12 @@ public class SoundPackManager {
 
         generateSoundsJson(packPath, foundNotes);
 
+        Map<Integer, Map<Integer, Integer>> lookupTables = createLookupTables(foundNotes); // <-- 调用新方法
+
         SoundPackInfo.Status status = foundNotes.isEmpty() ? SoundPackInfo.Status.EMPTY : SoundPackInfo.Status.OK;
-        availablePacks.add(
-                new SoundPackInfo(id, displayName, packPath, status, false, Collections.unmodifiableMap(foundNotes)));
         LOGGER.info("Updated/Loaded sound pack from directory: '{}' (ID: {})", displayName, id);
+        return new SoundPackInfo(id, displayName, packPath, status, false, Collections.unmodifiableMap(foundNotes),
+                lookupTables);
     }
 
     /**
