@@ -47,5 +47,6 @@
     "gui.extendednoteblock.edit_pack.tooltip.stop_preview": "試聴停止",
     "gui.extendednoteblock.edit_pack.tooltip.remove": "このサンプルファイルを削除(復元不可!)",
     "gui.extendednoteblock.edit_pack.delete_confirm.question": "本当に'%s'を削除しますか?",
-    "gui.extendednoteblock.edit_pack.delete_confirm.warning": "この操作は取り消せません!"
+    "gui.extendednoteblock.edit_pack.delete_confirm.warning": "この操作は取り消せません!",
+    "gui.extendednoteblock.edit_pack.empty_pack_message": "このサウンドパックには、サンプルが含まれていません。"
 }

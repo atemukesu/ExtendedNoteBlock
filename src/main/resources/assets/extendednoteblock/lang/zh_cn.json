@@ -47,5 +47,6 @@
     "gui.extendednoteblock.edit_pack.tooltip.stop_preview": "停止预览",
     "gui.extendednoteblock.edit_pack.tooltip.remove": "删除此采样文件 (不可恢复!)",
     "gui.extendednoteblock.edit_pack.delete_confirm.question": "确实要删除 '%s' 吗？",
-    "gui.extendednoteblock.edit_pack.delete_confirm.warning": "此操作无法撤销！"
+    "gui.extendednoteblock.edit_pack.delete_confirm.warning": "此操作无法撤销！",
+    "gui.extendednoteblock.edit_pack.empty_pack_message": "此音色包中没有任何采样。"
 }

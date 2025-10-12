@@ -47,5 +47,6 @@
     "gui.extendednoteblock.edit_pack.tooltip.stop_preview": "Stop Preview",
     "gui.extendednoteblock.edit_pack.tooltip.remove": "Delete this sample file (irreversible!)",
     "gui.extendednoteblock.edit_pack.delete_confirm.question": "Really delete '%s'?",
-    "gui.extendednoteblock.edit_pack.delete_confirm.warning": "This action cannot be undone!"
+    "gui.extendednoteblock.edit_pack.delete_confirm.warning": "This action cannot be undone!",
+    "gui.extendednoteblock.edit_pack.empty_pack_message": "There are no samples in this sound pack."
 }
