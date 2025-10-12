@@ -8,6 +8,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import java.util.regex.Pattern;
 
 /**
  * “创建新音色包”界面。
@@ -27,14 +28,27 @@ public class CreatePackScreen extends Screen {
      */
     private ButtonWidget createButton;
 
+    // 用于验证名称的正则表达式
+    // 该表达式允许字母(a-z, A-Z)，数字(0-9)，下划线(_)和连字符(-)
+    // ^ 和 $ 确保整个字符串都必须匹配这个规则
+    private static final Pattern VALID_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]+$");
+
     /**
      * 构造函数。
-     * 
+     *
      * @param parent 打开此界面的父屏幕实例。
      */
     public CreatePackScreen(Screen parent) {
         super(Text.translatable("gui.extendednoteblock.create_pack.title"));
         this.parent = parent;
+    }
+
+    // 一个辅助方法用于检查名称是否有效
+    private boolean isNameValid(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return false; // 空名称无效
+        }
+        return VALID_NAME_PATTERN.matcher(name.trim()).matches();
     }
 
     /**
@@ -47,34 +61,38 @@ public class CreatePackScreen extends Screen {
         int fieldWidth = 200;
         int fieldX = this.width / 2 - fieldWidth / 2;
 
-        // 初始化名称输入框
         this.nameField = new TextFieldWidget(this.textRenderer, fieldX, this.height / 2 - 20, fieldWidth, 20,
                 Text.translatable("gui.extendednoteblock.create_pack.name_field"));
         this.addDrawableChild(this.nameField);
-        // 界面打开时，自动聚焦到名称输入框
         this.setInitialFocus(this.nameField);
 
-        // 为输入框添加监听器，当文本改变时触发
+        // 为输入框添加更严格的监听器
         this.nameField.setChangedListener(text -> {
-            // 只有当输入框内容（去除首尾空格后）不为空时，"创建"按钮才可用
-            this.createButton.active = !text.trim().isEmpty();
-            // 每次文本改变时，重置文本框颜色为默认白色
-            this.nameField.setEditableColor(0xFFFFFFFF);
+            String trimmedText = text.trim();
+            boolean isValid = isNameValid(trimmedText);
+
+            // 当名称不为空且字符合法时，"创建"按钮才可用
+            this.createButton.active = isValid;
+
+            // 如果文本不为空且包含非法字符，则将输入框颜色设为红色以提示用户
+            // 如果文本为空或是合法的，则恢复为默认白色
+            if (!trimmedText.isEmpty() && !isValid) {
+                this.nameField.setEditableColor(Formatting.RED.getColorValue());
+            } else {
+                this.nameField.setEditableColor(0xFFFFFFFF);
+            }
         });
 
-        // 初始化 "创建" 按钮
         this.createButton = ButtonWidget.builder(
                 Text.translatable("gui.extendednoteblock.create_pack.button.create"),
-                button -> createAndEditPack()) // 点击时调用 createAndEditPack 方法
+                button -> createAndEditPack())
                 .dimensions(this.width / 2 - 100, this.height / 2 + 20, 200, 20).build();
-        // 初始状态下，"创建" 按钮不可用
         this.createButton.active = false;
         this.addDrawableChild(this.createButton);
 
-        // 初始化 "取消" 按钮
         this.addDrawableChild(ButtonWidget.builder(Text.translatable("gui.cancel"), (button) -> {
             if (this.client != null)
-                this.client.setScreen(this.parent); // 点击时返回父界面
+                this.client.setScreen(this.parent);
         }).dimensions(this.width / 2 - 100, this.height / 2 + 44, 200, 20).build());
     }
 
@@ -83,18 +101,16 @@ public class CreatePackScreen extends Screen {
      */
     private void createAndEditPack() {
         String displayName = this.nameField.getText().trim();
-        if (displayName.isEmpty())
-            return; // 如果名称为空，则不执行任何操作
+        // 增加一道保险，尽管按钮状态已经阻止了无效输入，但最好还是检查
+        if (!isNameValid(displayName))
+            return;
 
-        // 调用管理器来创建新的音色包
         SoundPackInfo newPack = SoundPackManager.getInstance().createNewPack(displayName);
         if (newPack != null && client != null) {
-            // 如果创建成功，则直接跳转到该音色包的编辑界面
             client.setScreen(new EditPackScreen(this.parent, newPack));
         } else {
-            // 如果创建失败（通常是因为名称已存在），则将输入框文本颜色设为红色以提示用户
             this.nameField.setEditableColor(Formatting.RED.getColorValue());
-            // 你也可以在这里添加一个文本组件来显示更详细的错误信息
+            // 如果创建失败的原因是重名，变红依然是有效的反馈
         }
     }
 
@@ -110,7 +126,7 @@ public class CreatePackScreen extends Screen {
 
     /**
      * 渲染屏幕上的所有元素。
-     * 
+     *
      * @param context 绘图上下文
      * @param mouseX  鼠标X坐标
      * @param mouseY  鼠标Y坐标
@@ -119,13 +135,21 @@ public class CreatePackScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context);
-        // 绘制屏幕标题
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, this.height / 2 - 50,
                 0xFFFFFF);
-        // 绘制名称输入框上方的标签文本
         context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.extendednoteblock.create_pack.name_field"),
                 this.nameField.getX(), this.nameField.getY() - 12, 0xA0A0A0);
-        // 渲染所有子组件（按钮、文本框等）
+
         super.render(context, mouseX, mouseY, delta);
+
+        // 当输入不合法时，显示一个提示信息
+        String trimmedText = this.nameField.getText().trim();
+        if (!trimmedText.isEmpty() && !isNameValid(trimmedText)) {
+            Text tooltip = Text.translatable("gui.extendednoteblock.create_pack.invalid_name")
+                    .formatted(Formatting.RED);
+            // 将提示信息绘制在输入框下方
+            context.drawTextWithShadow(this.textRenderer, tooltip, this.nameField.getX(),
+                    this.nameField.getY() + this.nameField.getHeight() + 4, 0xFFFFFF);
+        }
     }
 }
