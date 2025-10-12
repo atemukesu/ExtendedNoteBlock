@@ -67,6 +67,10 @@ public class ClientSoundManager {
         // 这将通过调整播放速度来精确模拟目标音高。
         float pitch = (float) Math.pow(2.0, (note - closestNote) / 12.0);
 
+        // 将 pitch 值四舍五入到小数点后两位。
+        // 这会极大地减少 pitch 值的种类。
+        pitch = Math.round(pitch * 100.0f) / 100.0f;
+
         // 5. 特殊处理鼓组
         if (instrumentId == DRUM_KIT_INSTRUMENT_ID) {
             // 鼓组的每个音高代表一个独立的打击乐器（如底鼓、军鼓），它们之间不能通过调音高来模拟。
