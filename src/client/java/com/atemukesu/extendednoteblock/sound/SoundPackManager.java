@@ -374,7 +374,7 @@ public class SoundPackManager {
                 JsonArray sounds = new JsonArray();
                 JsonObject soundEntry = new JsonObject();
                 soundEntry.addProperty("name", soundPath);
-                soundEntry.addProperty("stream", true);
+                soundEntry.addProperty("stream", false);
                 sounds.add(soundEntry);
                 soundEvent.add("sounds", sounds);
 
