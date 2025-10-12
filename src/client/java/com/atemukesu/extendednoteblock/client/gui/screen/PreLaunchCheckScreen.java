@@ -6,7 +6,6 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.text.Text;
-import org.apache.commons.lang3.StringUtils;
 
 public class PreLaunchCheckScreen extends Screen {
     private enum State {
@@ -14,7 +13,7 @@ public class PreLaunchCheckScreen extends Screen {
     }
 
     private State currentState = State.CHECKING;
-    private int ticks = 40;
+    private int ticks = 0;
     private final Text checkingText = Text.translatable("gui.extendednoteblock.pre_check.status.checking");
     private final Text successText = Text.translatable("gui.extendednoteblock.pre_check.status.success");
     private final Text failureText = Text.translatable("gui.extendednoteblock.pre_check.status.failure");
@@ -34,15 +33,22 @@ public class PreLaunchCheckScreen extends Screen {
         new Thread(() -> {
             boolean packFilesReady = ConfigManager.isActiveSoundPackReady();
             boolean packIsEnabled = SoundPackManager.getInstance().isCurrentPackActuallyEnabled();
+
+            // 如果包未启用，尝试自动启用它
             if (!packIsEnabled) {
-                SoundPackManager.getInstance().setActivePack((SoundPackManager.getInstance().getActivePackId()));
-                packIsEnabled = true;
+                String activeId = SoundPackManager.getInstance().getActivePackId();
+                if (activeId != null && !activeId.isBlank()) {
+                    SoundPackManager.getInstance().setActivePack(activeId);
+                    // 重新检查
+                    packIsEnabled = SoundPackManager.getInstance().isCurrentPackActuallyEnabled();
+                }
             }
+
             final boolean finalCheckResult = packFilesReady && packIsEnabled;
             if (this.client != null) {
                 this.client.execute(() -> {
                     this.currentState = finalCheckResult ? State.SUCCESS : State.FAILURE;
-                    this.ticks = 0;
+                    this.ticks = 0; // 重置计时器
                 });
             }
         }, "ENB-PreLaunchCheck").start();
@@ -58,13 +64,7 @@ public class PreLaunchCheckScreen extends Screen {
             }
         } else if (this.currentState == State.FAILURE && this.ticks > 40) {
             if (this.client != null) {
-                boolean dependenciesConfigured = StringUtils.isNotBlank(ConfigManager.getConfig().fluidSynthPath)
-                        && StringUtils.isNotBlank(ConfigManager.getConfig().ffmpegPath);
-                if (dependenciesConfigured) {
-                    this.client.setScreen(new SoundPackManagerScreen(new TitleScreen()));
-                } else {
-                    this.client.setScreen(new ConfigScreen(new TitleScreen()));
-                }
+                this.client.setScreen(new SoundPackManagerScreen(new TitleScreen()));
             }
         }
     }

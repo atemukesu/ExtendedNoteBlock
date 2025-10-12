@@ -291,7 +291,7 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
      * 用户可以通过点击琴键来选择一个音符，或者通过滚动条和鼠标滚轮来浏览全部 128 个 MIDI 音符。
      * 它通过回调函数与父屏幕通信，以更新所选音符和悬停信息。
      */
-    private class PianoWidget extends ClickableWidget {
+    public class PianoWidget extends ClickableWidget {
         private static final String[] NOTE_NAMES = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
         private static final boolean[] IS_BLACK_KEY = { false, true, false, true, false, false, true, false, true,
                 false, true, false };

@@ -23,7 +23,7 @@ public class StoppablePositionalSoundInstance implements TickableSoundInstance {
     private WeightedSoundSet soundSet;
 
     public StoppablePositionalSoundInstance(SoundEvent soundEvent, SoundCategory category, float volume, float pitch,
-            BlockPos pos, int sustainTicks) {
+            BlockPos pos) {
         this.soundEvent = soundEvent;
         this.category = category;
         this.volume = volume;

@@ -13,11 +13,7 @@ public abstract class SoundEventMixin {
     @Shadow
     private boolean staticDistance;
 
-    @Inject(
-            method = "getDistanceToTravel(F)F",
-            at = @At("HEAD"),
-            cancellable = true
-    )
+    @Inject(method = "getDistanceToTravel(F)F", at = @At("HEAD"), cancellable = true)
     private void onGetDistanceToTravel(float volume, CallbackInfoReturnable<Float> cir) {
         if (!this.staticDistance) {
             cir.setReturnValue(48.0F); // 固定声音衰减距离为48

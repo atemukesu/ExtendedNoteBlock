@@ -5,18 +5,13 @@ import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.minecraft.client.MinecraftClient;
 import java.io.File;
-import java.nio.file.Files;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
 import com.atemukesu.extendednoteblock.ExtendedNoteBlock;
 import com.atemukesu.extendednoteblock.sound.SoundPackInfo;
 import com.atemukesu.extendednoteblock.sound.SoundPackManager;
-import com.atemukesu.extendednoteblock.util.SoundfontRenderer;
 
 public class ConfigManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -51,6 +46,7 @@ public class ConfigManager {
                 throw new IOException("Config file is empty or corrupted.");
             }
             LOGGER.info("Successfully loaded config file.");
+            // 在加载后立即保存，以添加可能在新版本中增加的字段
             saveConfig();
         } catch (IOException e) {
             LOGGER.error("Failed to load config file, using default values.", e);
@@ -88,40 +84,7 @@ public class ConfigManager {
         return config;
     }
 
-    /**
-     * 检查声音资源包是否已完全生成。
-     * <p>
-     * 通过检查主资源包目录、{@code pack.mcmeta} 文件、声音目录以及
-     * 基于 {@link SoundfontRenderer} 的所有预期声音文件的存在性，来验证生成的资源包的完整性。
-     *
-     * @return 如果资源包及其所有必需的声音文件都存在，则返回 {@code true}，否则返回 {@code false}。
-     */
-    public static boolean isSoundPackGenerated() {
-        try {
-            Path resourcePackPath = MinecraftClient.getInstance().runDirectory.toPath()
-                    .resolve("resourcepacks/ExtendedNoteBlockSounds");
-            if (!Files.isDirectory(resourcePackPath))
-                return false;
-            if (!Files.isRegularFile(resourcePackPath.resolve("pack.mcmeta")))
-                return false;
-            List<String> expectedFiles = SoundfontRenderer.getExpectedSoundFiles();
-            if (expectedFiles.isEmpty()) {
-                return true;
-            }
-            Path soundsPath = resourcePackPath.resolve("assets").resolve(SoundfontRenderer.MOD_ID).resolve("sounds")
-                    .resolve("notes");
-            if (!Files.isDirectory(soundsPath))
-                return false;
-            for (String fileName : expectedFiles) {
-                if (!Files.isRegularFile(soundsPath.resolve(fileName))) {
-                    return false;
-                }
-            }
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+    // isSoundPackGenerated 方法已被删除，因为它依赖于已移除的 SoundfontRenderer
 
     /**
      * 检查当前激活的声音包是否已准备好使用。
