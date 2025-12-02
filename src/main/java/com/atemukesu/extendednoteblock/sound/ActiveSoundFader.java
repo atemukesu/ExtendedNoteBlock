@@ -79,9 +79,9 @@ public class ActiveSoundFader {
             return true;
         }
 
-        // 计算淡入效果
         if (fadeInTicks > 0 && currentTick <= fadeInTicks) {
-            float fadeInProgress = (float) (currentTick - 1) / (float) fadeInTicks;
+            // 直接使用 currentTick，确保第1个tick就有声音
+            float fadeInProgress = (float) currentTick / (float) fadeInTicks;
             volumeMultiplier = Math.min(volumeMultiplier, fadeInProgress);
         }
 
@@ -90,7 +90,10 @@ public class ActiveSoundFader {
             int fadeOutStartTick = sustainTicks - fadeOutTicks;
             if (currentTick > fadeOutStartTick) {
                 int timeIntoFadeOut = currentTick - fadeOutStartTick;
-                float fadeOutProgress = 1.0f - ((float) timeIntoFadeOut / (float) fadeOutTicks);
+
+                // 分母改为 fadeOutTicks + 1.0f
+                float fadeOutProgress = 1.0f - ((float) timeIntoFadeOut / (float) (fadeOutTicks + 1));
+
                 volumeMultiplier = Math.min(volumeMultiplier, fadeOutProgress);
             }
         }
