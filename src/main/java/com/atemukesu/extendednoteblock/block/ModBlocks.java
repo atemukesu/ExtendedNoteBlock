@@ -15,6 +15,13 @@ public class ModBlocks {
     public static final Block EXTENDED_NOTE_BLOCK = registerBlock("extended_note_block",
             new ExtendedNoteBlockBlock(FabricBlockSettings.copyOf(Blocks.NOTE_BLOCK)
                     .luminance(state -> state.get(net.minecraft.state.property.Properties.POWERED) ? 15 : 0)));
+    
+    public static final Block GLOBAL_REDSTONE_TRANSMITTER = registerBlock("global_redstone_transmitter",
+            new TransmitterBlock(FabricBlockSettings.copyOf(Blocks.STONE).strength(1.5f)));
+    
+    public static final Block GLOBAL_REDSTONE_RECEIVER = registerBlock("global_redstone_receiver",
+            new ReceiverBlock(FabricBlockSettings.copyOf(Blocks.STONE).strength(1.5f)
+                    .luminance(state -> state.get(net.minecraft.state.property.Properties.POWERED) ? 15 : 0)));
 
     /**
      * 辅助方法，用于注册方块

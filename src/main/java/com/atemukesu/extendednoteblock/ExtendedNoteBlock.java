@@ -7,10 +7,16 @@ import org.slf4j.LoggerFactory;
 
 import com.atemukesu.extendednoteblock.block.ModBlocks;
 import com.atemukesu.extendednoteblock.block.entity.ModBlockEntities;
+import com.atemukesu.extendednoteblock.item.ConductorWandItem;
 import com.atemukesu.extendednoteblock.item.ModItemGroups;
 import com.atemukesu.extendednoteblock.network.ModMessages;
 import com.atemukesu.extendednoteblock.screen.ModScreenHandlers;
 import com.atemukesu.extendednoteblock.sound.ServerSoundManager;
+
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
 
 public class ExtendedNoteBlock implements ModInitializer {
 	public static final String MOD_ID = "extendednoteblock";
@@ -19,6 +25,8 @@ public class ExtendedNoteBlock implements ModInitializer {
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	
+	public static final Item CONDUCTOR_WAND = new ConductorWandItem();
 
 	@Override
 	public void onInitialize() {
@@ -31,6 +39,10 @@ public class ExtendedNoteBlock implements ModInitializer {
 		ModScreenHandlers.registerScreenHandlers();
         ModMessages.registerC2SPackets();
 		ServerSoundManager.initialize();
+		
+		// Register Conductor Wand
+		Registry.register(Registries.ITEM, new Identifier(MOD_ID, "conductor_wand"), CONDUCTOR_WAND);
+		
 		LOGGER.info("Extended Note Block Loaded.");
 	}
 }

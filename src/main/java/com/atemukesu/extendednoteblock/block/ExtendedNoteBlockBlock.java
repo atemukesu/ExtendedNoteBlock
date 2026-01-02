@@ -82,8 +82,8 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
                         blockEntity.getSustain(),
                         blockEntity.getFadeInTime(),
                         blockEntity.getFadeOutTime(),
-                        blockEntity.getPitchBendCurve(),
-                        blockEntity.getVolumeCurve(),
+                        blockEntity.getPitchBendPoints(),
+                        blockEntity.getVolumePoints(),
                         blockEntity.getSoundPath());
             } else {
                 // 使用传统方法

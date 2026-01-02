@@ -3,6 +3,7 @@ package com.atemukesu.extendednoteblock.block.entity;
 import com.atemukesu.extendednoteblock.block.ExtendedNoteBlockBlock;
 import com.atemukesu.extendednoteblock.map.InstrumentMap;
 import com.atemukesu.extendednoteblock.screen.ExtendedNoteBlockScreenHandler;
+import com.atemukesu.extendednoteblock.util.CurvePoint;
 import com.atemukesu.extendednoteblock.util.NotePitch;
 
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -75,20 +76,20 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
 
     // ============== Advanced Features v1.4.0 ==============
     /**
-     * 弯音轮数据 (Pitch Bend Curve)。
+     * 弯音轮数据 (Pitch Bend Points)。
      * 存储一系列音高偏移值（单位：音分 cents，1 半音 = 100 cents）。
      * 这些值会在声音持续时间内进行插值。
      * 如果为空或 null，则使用基础 note 值。
      */
-    private List<Float> pitchBendCurve = new ArrayList<>();
+    private List<CurvePoint> pitchBendPoints = new ArrayList<>();
 
     /**
-     * 音量曲线数据 (Volume Curve)。
+     * 音量曲线数据 (Volume Points)。
      * 存储一系列音量值 (0.0 - 2.0)，用于覆盖基础 velocity 计算的音量。
      * 这些值会在声音持续时间内进行插值。
      * 如果为空或 null，则使用基础 velocity 值。
      */
-    private List<Float> volumeCurve = new ArrayList<>();
+    private List<CurvePoint> volumePoints = new ArrayList<>();
 
     /**
      * 声源移动路径 (Sound Path)。
@@ -205,22 +206,28 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         // Advanced Features v1.4.0
         NbtCompound advancedData = new NbtCompound();
 
-        // Write Pitch Bend Curve
-        if (!pitchBendCurve.isEmpty()) {
-            NbtList pitchList = new NbtList();
-            for (Float f : pitchBendCurve) {
-                pitchList.add(NbtFloat.of(f));
+        // Write Pitch Bend Points
+        if (!pitchBendPoints.isEmpty()) {
+            NbtList list = new NbtList();
+            for (CurvePoint p : pitchBendPoints) {
+                NbtCompound pointTag = new NbtCompound();
+                pointTag.putFloat("t", p.time);
+                pointTag.putFloat("v", p.value);
+                list.add(pointTag);
             }
-            advancedData.put("PitchBendCurve", pitchList);
+            advancedData.put("PitchBendPoints", list);
         }
 
-        // Write Volume Curve
-        if (!volumeCurve.isEmpty()) {
-            NbtList volumeList = new NbtList();
-            for (Float f : volumeCurve) {
-                volumeList.add(NbtFloat.of(f));
+        // Write Volume Points
+        if (!volumePoints.isEmpty()) {
+            NbtList list = new NbtList();
+            for (CurvePoint p : volumePoints) {
+                NbtCompound pointTag = new NbtCompound();
+                pointTag.putFloat("t", p.time);
+                pointTag.putFloat("v", p.value);
+                list.add(pointTag);
             }
-            advancedData.put("VolumeCurve", volumeList);
+            advancedData.put("VolumePoints", list);
         }
 
         // Write Sound Path
@@ -272,8 +279,8 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         this.fadeOutTime = nbt.getInt("fadeOutTime");
 
         // Read Advanced Features v1.4.0
-        this.pitchBendCurve.clear();
-        this.volumeCurve.clear();
+        this.pitchBendPoints.clear();
+        this.volumePoints.clear();
         this.soundPath.clear();
         this.storedExpressionX = "";
         this.storedExpressionY = "";
@@ -283,19 +290,21 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         if (nbt.contains("AdvancedData")) {
             NbtCompound advancedData = nbt.getCompound("AdvancedData");
 
-            // Read Pitch Bend Curve
-            if (advancedData.contains("PitchBendCurve")) {
-                NbtList pitchList = advancedData.getList("PitchBendCurve", 5); // 5 = Float type
-                for (int i = 0; i < pitchList.size(); i++) {
-                    this.pitchBendCurve.add(pitchList.getFloat(i));
+            // Read Pitch Bend Points
+            if (advancedData.contains("PitchBendPoints")) {
+                NbtList list = advancedData.getList("PitchBendPoints", 10); // 10 = Compound
+                for (int i = 0; i < list.size(); i++) {
+                    NbtCompound p = list.getCompound(i);
+                    this.pitchBendPoints.add(new CurvePoint(p.getFloat("t"), p.getFloat("v")));
                 }
             }
-
-            // Read Volume Curve
-            if (advancedData.contains("VolumeCurve")) {
-                NbtList volumeList = advancedData.getList("VolumeCurve", 5); // 5 = Float type
-                for (int i = 0; i < volumeList.size(); i++) {
-                    this.volumeCurve.add(volumeList.getFloat(i));
+            
+            // Read Volume Points
+            if (advancedData.contains("VolumePoints")) {
+                NbtList list = advancedData.getList("VolumePoints", 10);
+                for (int i = 0; i < list.size(); i++) {
+                    NbtCompound p = list.getCompound(i);
+                    this.volumePoints.add(new CurvePoint(p.getFloat("t"), p.getFloat("v")));
                 }
             }
 
@@ -323,8 +332,8 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
             }
 
             // Enable advanced mode if any advanced data exists
-            this.advancedModeEnabled = !this.pitchBendCurve.isEmpty() ||
-                    !this.volumeCurve.isEmpty() ||
+            this.advancedModeEnabled = !this.pitchBendPoints.isEmpty() ||
+                    !this.volumePoints.isEmpty() ||
                     !this.soundPath.isEmpty();
         }
     }
@@ -423,21 +432,21 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
     // ============== Advanced Features Getters v1.4.0 ==============
 
     /**
-     * 获取弯音轮曲线数据。
+     * 获取弯音轮关键点数据。
      *
-     * @return 弯音轮曲线 (音分值列表)，可能为空列表。
+     * @return 弯音轮关键点列表，可能为空列表。
      */
-    public List<Float> getPitchBendCurve() {
-        return this.pitchBendCurve;
+    public List<CurvePoint> getPitchBendPoints() {
+        return this.pitchBendPoints;
     }
 
     /**
-     * 获取音量曲线数据。
+     * 获取音量关键点数据。
      *
-     * @return 音量曲线列表，可能为空列表。
+     * @return 音量关键点列表，可能为空列表。
      */
-    public List<Float> getVolumeCurve() {
-        return this.volumeCurve;
+    public List<CurvePoint> getVolumePoints() {
+        return this.volumePoints;
     }
 
     /**
@@ -486,23 +495,23 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
     }
 
     /**
-     * 设置弯音轮曲线数据。
+     * 设置弯音轮关键点数据。
      *
-     * @param curve 新的弯音轮曲线。
+     * @param points 新的弯音轮关键点。
      */
-    public void setPitchBendCurve(List<Float> curve) {
-        this.pitchBendCurve = new ArrayList<>(curve);
+    public void setPitchBendPoints(List<CurvePoint> points) {
+        this.pitchBendPoints = new ArrayList<>(points);
         updateAdvancedModeStatus();
         markDirty();
     }
 
     /**
-     * 设置音量曲线数据。
+     * 设置音量关键点数据。
      *
-     * @param curve 新的音量曲线。
+     * @param points 新的音量关键点。
      */
-    public void setVolumeCurve(List<Float> curve) {
-        this.volumeCurve = new ArrayList<>(curve);
+    public void setVolumePoints(List<CurvePoint> points) {
+        this.volumePoints = new ArrayList<>(points);
         updateAdvancedModeStatus();
         markDirty();
     }
@@ -552,8 +561,10 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
      * 更新高级模式状态。
      */
     private void updateAdvancedModeStatus() {
-        this.advancedModeEnabled = !this.pitchBendCurve.isEmpty() ||
-                !this.volumeCurve.isEmpty() ||
+        // 只要有自定义点（除了默认的首尾点），就视为高级模式
+        // 这里简单判断非空即可，具体业务逻辑可根据需求调整
+        this.advancedModeEnabled = !this.pitchBendPoints.isEmpty() ||
+                !this.volumePoints.isEmpty() ||
                 !this.soundPath.isEmpty();
     }
 
@@ -645,14 +656,18 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         
         // ============== Advanced Features v1.4.0 ==============
         // Write advanced settings data
-        buf.writeInt(this.pitchBendCurve.size());
-        for (Float value : this.pitchBendCurve) {
-            buf.writeFloat(value);
+        // 写入弯音点
+        buf.writeInt(this.pitchBendPoints.size());
+        for (CurvePoint p : this.pitchBendPoints) {
+            buf.writeFloat(p.time);
+            buf.writeFloat(p.value);
         }
         
-        buf.writeInt(this.volumeCurve.size());
-        for (Float value : this.volumeCurve) {
-            buf.writeFloat(value);
+        // 写入音量点
+        buf.writeInt(this.volumePoints.size());
+        for (CurvePoint p : this.volumePoints) {
+            buf.writeFloat(p.time);
+            buf.writeFloat(p.value);
         }
         
         buf.writeInt(this.soundPath.size());

@@ -1,6 +1,7 @@
 package com.atemukesu.extendednoteblock.network;
 
 import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
+import com.atemukesu.extendednoteblock.util.CurvePoint;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
@@ -9,6 +10,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -37,23 +39,30 @@ public class AdvancedSettingsPacket {
      */
     public static void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler,
             PacketByteBuf buf, PacketSender responseSender) {
-        // 从数据包缓冲区中读取数据
+        
         BlockPos pos = buf.readBlockPos();
         
-        // 读取音量曲线数据
-        int volumeCurveSize = buf.readInt();
-        List<Float> volumeCurve = new ArrayList<>();
-        for (int i = 0; i < volumeCurveSize; i++) {
-            volumeCurve.add(buf.readFloat());
+        // 读取音量关键点
+        int volSize = buf.readInt();
+        // 安全检查 (防止 DoS)
+        if (volSize < 0 || volSize > 256) return; 
+        List<CurvePoint> volumePoints = new ArrayList<>();
+        for (int i = 0; i < volSize; i++) {
+            float t = buf.readFloat();
+            float v = buf.readFloat();
+            volumePoints.add(new CurvePoint(t, v));
         }
-        
-        // 读取弯音曲线数据
-        int pitchBendCurveSize = buf.readInt();
-        List<Float> pitchBendCurve = new ArrayList<>();
-        for (int i = 0; i < pitchBendCurveSize; i++) {
-            pitchBendCurve.add(buf.readFloat());
+
+        // 读取弯音关键点
+        int pitchSize = buf.readInt();
+        if (pitchSize < 0 || pitchSize > 256) return;
+        List<CurvePoint> pitchPoints = new ArrayList<>();
+        for (int i = 0; i < pitchSize; i++) {
+            float t = buf.readFloat();
+            float v = buf.readFloat();
+            pitchPoints.add(new CurvePoint(t, v));
         }
-        
+
         // 读取声源移动路径数据
         int soundPathSize = buf.readInt();
         List<Vec3d> soundPath = new ArrayList<>();
@@ -69,24 +78,17 @@ public class AdvancedSettingsPacket {
         String storedExpressionY = buf.readString();
         String storedExpressionZ = buf.readString();
 
-        // 将逻辑切换到主线程执行
         server.execute(() -> {
             World world = player.getWorld();
-
-            // 验证目标位置是否存在正确的方块实体
             if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity entity) {
-                // 更新方块实体的高级功能数据
-                entity.setVolumeCurve(volumeCurve);
-                entity.setPitchBendCurve(pitchBendCurve);
+                entity.setVolumePoints(volumePoints);
+                entity.setPitchBendPoints(pitchPoints);
                 entity.setSoundPath(soundPath);
                 
                 // 更新存储的表达式
                 entity.setStoredExpressionX(storedExpressionX);
                 entity.setStoredExpressionY(storedExpressionY);
                 entity.setStoredExpressionZ(storedExpressionZ);
-
-            } else {
-                System.err.println("在位置 " + pos + " 未找到 ExtendedNoteBlockEntity");
             }
         });
     }

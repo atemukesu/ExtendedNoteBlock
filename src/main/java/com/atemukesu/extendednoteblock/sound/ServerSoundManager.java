@@ -1,11 +1,13 @@
 package com.atemukesu.extendednoteblock.sound;
 
+import com.atemukesu.extendednoteblock.util.CurvePoint;
 import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
 import com.atemukesu.extendednoteblock.network.ModMessages;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,29 +32,31 @@ public class ServerSoundManager {
     }
 
     // ============== Advanced Features v1.4.0 ==============
-    // 重载方法，用于播放带有高级曲线数据的声音
     public static void playAdvancedSound(ServerWorld world, BlockPos pos, int instrumentId, int note, int velocity,
                                          int sustainTicks, int fadeInTicks, int fadeOutTicks,
-                                         List<Float> pitchBendCurve, List<Float> volumeCurve, List<net.minecraft.util.math.Vec3d> soundPath) {
+                                         List<CurvePoint> pitchBendPoints, List<CurvePoint> volumePoints, List<Vec3d> soundPath) {
 
         UUID soundId = UUID.randomUUID();
         ActiveSoundFader fader = new ActiveSoundFader(world, pos, soundId, velocity, sustainTicks, fadeInTicks, fadeOutTicks);
 
-        fader.setPitchBendCurve(pitchBendCurve);
-        fader.setVolumeCurve(volumeCurve);
+        fader.setPitchBendPoints(pitchBendPoints);
+        fader.setVolumePoints(volumePoints);
         fader.setSoundPath(soundPath);
-
-        // 关键点：获取 t=0 时的状态
-        ActiveSoundFader.SoundState initial = fader.calculateStateAt(0.0f);
 
         activeSounds.put(soundId, fader);
 
-        // 调用刚才在 ModMessages 里写的方法
+        // 计算 t=0 的状态
+        ActiveSoundFader.SoundState initial = fader.calculateStateAt(0.0f);
+
+        // [修改] 调用新的发送方法 START_ADVANCED_SOUND_ID
         ModMessages.sendStartAdvancedSoundToClients(
                 world, pos, soundId, instrumentId, note,
-                initial.volume, initial.pitch, initial.x, initial.y, initial.z
+                initial.volume, // 如果曲线t=0是0，这里发过去就是0
+                initial.pitch,  // 这里发过去的是倍率 (例如 1.0)
+                initial.x, initial.y, initial.z
         );
     }
+
 
     public static void stopSound(ServerWorld world, BlockPos pos) {
         activeSounds.values().stream()

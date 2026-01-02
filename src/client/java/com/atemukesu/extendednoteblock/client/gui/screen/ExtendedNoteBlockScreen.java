@@ -197,12 +197,10 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
             this.fadeOutTime = parseInteger(text, 0, 400, this.fadeOutTime);
         });
         this.addDrawableChild(this.fadeOutField);
-        
-        // 优化高级设置按钮位置：放在乐器选择框的右侧，或者标题栏右侧
+
         int advBtnWidth = 80;
-        // 放在标题行右侧，留出安全边距
         int advancedButtonX = this.width - advBtnWidth - 10;
-        int advancedButtonY = 10; 
+        int advancedButtonY = 10;
 
         this.addDrawableChild(ButtonWidget.builder(
             Text.translatable("gui.extendednoteblock.advanced_settings").formatted(Formatting.GOLD), 

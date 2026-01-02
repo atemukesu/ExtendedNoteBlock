@@ -1,8 +1,9 @@
 package com.atemukesu.extendednoteblock.sound;
 
+import com.atemukesu.extendednoteblock.network.ModMessages;
+import com.atemukesu.extendednoteblock.util.CurvePoint;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import com.atemukesu.extendednoteblock.network.ModMessages;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
@@ -28,8 +29,8 @@ public class ActiveSoundFader {
     private final int fadeOutTicks;
 
     // ============== Advanced Features v1.4.0 ==============
-    private List<Float> pitchBendCurve;
-    private List<Float> volumeCurve;
+    private List<CurvePoint> pitchBendPoints;
+    private List<CurvePoint> volumePoints;
     private List<Vec3d> soundPath;
 
     private int currentTick = 0;
@@ -53,12 +54,12 @@ public class ActiveSoundFader {
     }
 
     // ============== Advanced Features Setters v1.4.0 ==============
-    public void setPitchBendCurve(List<Float> curve) {
-        this.pitchBendCurve = curve;
+    public void setPitchBendPoints(List<CurvePoint> points) {
+        this.pitchBendPoints = points;
     }
 
-    public void setVolumeCurve(List<Float> curve) {
-        this.volumeCurve = curve;
+    public void setVolumePoints(List<CurvePoint> points) {
+        this.volumePoints = points;
     }
 
     public void setSoundPath(List<Vec3d> path) {
@@ -72,79 +73,21 @@ public class ActiveSoundFader {
      */
     public boolean tick() {
         if (isFinished) return true;
-
-        // 1. 检查是否已经到达寿命终点
         if (currentTick >= sustainTicks) {
             isFinished = true;
             return true;
         }
 
-        float baseMaxVolume = originalVelocity / 127.0f;
-        float finalVolume = 0;
-        float pitchMultiplier = 1.0f;
+        // 计算当前进度 (0.0 ~ 1.0)
+        // 使用 float 确保精度
+        float progress = (sustainTicks > 1) ? (float) currentTick / (sustainTicks - 1) : 0.0f;
+        
+        // 计算当前状态
+        SoundState state = calculateStateAt(progress);
+        
+        // 发送更新
+        ModMessages.sendAdvancedUpdateToClients(world, pos, soundId, state.volume, state.pitch, state.x, state.y, state.z);
 
-        // 2. 获取当前 Tick 对应的预采样索引
-        // 直接使用currentTick作为索引，与采样时的逻辑完全一致
-        int index;
-        if (volumeCurve != null && !volumeCurve.isEmpty()) {
-            index = MathHelper.clamp(currentTick, 0, volumeCurve.size() - 1); // 双重保险，防止浮点数精度问题
-        } else {
-            index = 0; // 当没有volumeCurve时，使用默认索引
-        }
-
-        if (volumeCurve != null && !volumeCurve.isEmpty()) {
-            float baseMaxVolumeValue = originalVelocity / 127.0f;
-            finalVolume = volumeCurve.get(index) * baseMaxVolumeValue;
-        } else {
-            // 回退到原来的 FadeIn/FadeOut 逻辑
-            float volumeMultiplier = 1.0f;
-            if (fadeInTicks > 0 && currentTick <= fadeInTicks) {
-                // 直接使用 currentTick，确保第1个tick就有声音
-                float fadeInProgress = (float) currentTick / (float) fadeInTicks;
-                volumeMultiplier = Math.min(volumeMultiplier, fadeInProgress);
-            }
-
-            // 计算淡出效果
-            if (fadeOutTicks > 0 && sustainTicks > 0) {
-                int fadeOutStartTick = sustainTicks - fadeOutTicks;
-                if (currentTick > fadeOutStartTick) {
-                    int timeIntoFadeOut = currentTick - fadeOutStartTick;
-
-                    // 分母改为 fadeOutTicks + 1.0f
-                    float fadeOutProgress = 1.0f - ((float) timeIntoFadeOut / (float) (fadeOutTicks + 1));
-
-                    volumeMultiplier = Math.min(volumeMultiplier, fadeOutProgress);
-                }
-            }
-            finalVolume = baseMaxVolume * volumeMultiplier;
-        }
-
-        if (pitchBendCurve != null && !pitchBendCurve.isEmpty()) {
-            float pitchOffset = pitchBendCurve.get(index);
-            pitchMultiplier = (float) Math.pow(2.0, pitchOffset / 12.0);
-        }
-
-        // 3. 处理位置移动
-        Vec3d currentPos = new Vec3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        if (soundPath != null && !soundPath.isEmpty()) {
-            // 使用currentTick作为索引，与采样时的逻辑完全一致
-            int pathIndex;
-            if (soundPath != null && !soundPath.isEmpty()) {
-                pathIndex = MathHelper.clamp(currentTick, 0, soundPath.size() - 1); // 双重保险，防止浮点数精度问题
-            } else {
-                pathIndex = 0; // 当没有soundPath时，使用默认索引
-            }
-            Vec3d offset = soundPath.get(pathIndex);
-            currentPos = currentPos.add(offset);
-        }
-
-        // 确保音量在有效范围内
-        finalVolume = Math.max(0.0f, Math.min(finalVolume, 2.0f));
-
-        // 4. 发送综合更新
-        ModMessages.sendAdvancedUpdateToClients(world, pos, soundId, finalVolume, pitchMultiplier, currentPos.x, currentPos.y, currentPos.z);
-
-        // 5. 增加计数
         currentTick++;
         return false;
     }
@@ -203,64 +146,84 @@ public class ActiveSoundFader {
 
     public SoundState calculateStateAt(float progress) {
         float baseMaxVolume = originalVelocity / 127.0f;
-
-        // 1. 音量 (兼容逻辑)
-        float volume;
-        if (volumeCurve != null && !volumeCurve.isEmpty()) {
-            // 使用与采样时一致的索引计算方式
-            int index;
-            if (sustainTicks > 1) {
-                index = (int) (progress * (sustainTicks - 1));
-            } else {
-                index = 0;
-            }
-            index = MathHelper.clamp(index, 0, volumeCurve.size() - 1);
-            volume = volumeCurve.get(index) * baseMaxVolume;
+        float currentVolume = 0.0f;
+        float currentPitchMul = 1.0f;
+        
+        // 1. 计算音量 (线性插值)
+        if (volumePoints != null && !volumePoints.isEmpty()) {
+            float curveValue = interpolateValue(volumePoints, progress);
+            currentVolume = curveValue * baseMaxVolume;
         } else {
-            // 兼容原有的 FadeIn 逻辑
-            float multiplier = 1.0f;
-            int currentT = (int) (progress * sustainTicks);
-            if (fadeInTicks > 0 && currentT <= fadeInTicks) {
-                multiplier = (float) currentT / (float) fadeInTicks;
+            // [兼容旧逻辑] 淡入淡出计算...
+            // 确保没有 volumePoints 时逻辑正确
+            float volumeMultiplier = 1.0f;
+            if (fadeInTicks > 0 && (progress * sustainTicks) <= fadeInTicks) {
+                float fadeInProgress = Math.min(1.0f, (float)(progress * sustainTicks) / (float) fadeInTicks);
+                volumeMultiplier = Math.min(volumeMultiplier, fadeInProgress);
             }
-            volume = baseMaxVolume * multiplier;
+
+            // 计算淡出效果
+            if (fadeOutTicks > 0 && sustainTicks > 0) {
+                int fadeOutStartTick = sustainTicks - fadeOutTicks;
+                if ((int)(progress * sustainTicks) > fadeOutStartTick) {
+                    int timeIntoFadeOut = (int)(progress * sustainTicks) - fadeOutStartTick;
+                    float fadeOutProgress = 1.0f - ((float) timeIntoFadeOut / (float) (fadeOutTicks + 1));
+                    volumeMultiplier = Math.min(volumeMultiplier, fadeOutProgress);
+                }
+            }
+            currentVolume = baseMaxVolume * volumeMultiplier;
         }
 
-        // 2. 音高 (兼容逻辑)
-        float pitchMultiplier = 1.0f;
-        if (pitchBendCurve != null && !pitchBendCurve.isEmpty()) {
-            // 使用与采样时一致的索引计算方式
-            int index;
-            if (sustainTicks > 1) {
-                index = (int) (progress * (sustainTicks - 1));
-            } else {
-                index = 0;
-            }
-            index = MathHelper.clamp(index, 0, pitchBendCurve.size() - 1);
-            float semitones = pitchBendCurve.get(index);
-            pitchMultiplier = (float) Math.pow(2.0, semitones / 12.0);
+        // 2. 计算弯音 (线性插值)
+        if (pitchBendPoints != null && !pitchBendPoints.isEmpty()) {
+            float semitones = interpolateValue(pitchBendPoints, progress);
+            currentPitchMul = (float) Math.pow(2.0, semitones / 12.0);
         }
 
-        // 3. 位置 (兼容逻辑)
+        // 3. 计算位置 (数组索引映射，因为 soundPath 仍是逐帧生成的)
+        // 如果想把 SoundPath 也改成关键点插值，逻辑同上
         double curX = pos.getX() + 0.5;
         double curY = pos.getY() + 0.5;
         double curZ = pos.getZ() + 0.5;
+        
         if (soundPath != null && !soundPath.isEmpty()) {
-            // 使用与采样时一致的索引计算方式
-            int pathIndex;
-            if (sustainTicks > 1) {
-                pathIndex = (int) (progress * (sustainTicks - 1));
-            } else {
-                pathIndex = 0;
-            }
-            pathIndex = MathHelper.clamp(pathIndex, 0, soundPath.size() - 1);
-            Vec3d offset = soundPath.get(pathIndex);
+            int index = MathHelper.clamp((int)(progress * (soundPath.size() - 1)), 0, soundPath.size() - 1);
+            Vec3d offset = soundPath.get(index);
             curX += offset.x;
             curY += offset.y;
             curZ += offset.z;
         }
 
-        return new SoundState(volume, pitchMultiplier, curX, curY, curZ);
+        return new SoundState(currentVolume, currentPitchMul, curX, curY, curZ);
+    }
+
+    /**
+     * 核心插值算法：根据时间进度 t，在关键点列表中找到前后两个点进行线性插值
+     */
+    private float interpolateValue(List<CurvePoint> points, float t) {
+        if (points.isEmpty()) return 0f;
+        
+        // 边界处理
+        if (t <= points.get(0).time) return points.get(0).value;
+        if (t >= points.get(points.size() - 1).time) return points.get(points.size() - 1).value;
+
+        // 寻找区间
+        for (int i = 0; i < points.size() - 1; i++) {
+            CurvePoint p1 = points.get(i);
+            CurvePoint p2 = points.get(i + 1);
+
+            if (t >= p1.time && t <= p2.time) {
+                // 计算局部进度
+                float range = p2.time - p1.time;
+                if (range <= 0.00001f) return p1.value; // 防止除以0
+                
+                float localT = (t - p1.time) / range;
+                // Lerp: a + (b - a) * t
+                return p1.value + (p2.value - p1.value) * localT;
+            }
+        }
+        
+        return points.get(points.size() - 1).value;
     }
 
     /**

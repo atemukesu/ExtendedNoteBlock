@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "extendednoteblock:block/global_redstone_receiver"
+    },
+    "powered=true": {
+      "model": "extendednoteblock:block/global_redstone_receiver_on"
+    }
+  }
+}

@@ -10,6 +10,8 @@ import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+import static com.atemukesu.extendednoteblock.ExtendedNoteBlock.CONDUCTOR_WAND;
+
 public class ModItemGroups {
 
     public static final ItemGroup EXTENDED_NOTE_BLOCK_GROUP = Registry.register(Registries.ITEM_GROUP,
@@ -19,6 +21,9 @@ public class ModItemGroups {
                     .icon(() -> new ItemStack(ModBlocks.EXTENDED_NOTE_BLOCK))
                     .entries((displayContext, entries) -> {
                         entries.add(ModBlocks.EXTENDED_NOTE_BLOCK);
+                        entries.add(ModBlocks.GLOBAL_REDSTONE_TRANSMITTER);
+                        entries.add(ModBlocks.GLOBAL_REDSTONE_RECEIVER);
+                        entries.add(CONDUCTOR_WAND);
                     })
                     .build());
 
