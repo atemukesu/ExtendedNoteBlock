@@ -79,13 +79,18 @@ public class ActiveSoundFader {
             return true;
         }
 
-        // 2. 获取当前 Tick 对应的预采样索引
-        // 直接使用currentTick作为索引，与采样时的逻辑完全一致
-        int index = MathHelper.clamp(currentTick, 0, volumeCurve.size() - 1);
-
         float baseMaxVolume = originalVelocity / 127.0f;
         float finalVolume = 0;
         float pitchMultiplier = 1.0f;
+
+        // 2. 获取当前 Tick 对应的预采样索引
+        // 直接使用currentTick作为索引，与采样时的逻辑完全一致
+        int index;
+        if (volumeCurve != null && !volumeCurve.isEmpty()) {
+            index = MathHelper.clamp(currentTick, 0, volumeCurve.size() - 1); // 双重保险，防止浮点数精度问题
+        } else {
+            index = 0; // 当没有volumeCurve时，使用默认索引
+        }
 
         if (volumeCurve != null && !volumeCurve.isEmpty()) {
             float baseMaxVolumeValue = originalVelocity / 127.0f;
@@ -123,7 +128,12 @@ public class ActiveSoundFader {
         Vec3d currentPos = new Vec3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
         if (soundPath != null && !soundPath.isEmpty()) {
             // 使用currentTick作为索引，与采样时的逻辑完全一致
-            int pathIndex = MathHelper.clamp(currentTick, 0, soundPath.size() - 1); // 双重保险，防止浮点数精度问题
+            int pathIndex;
+            if (soundPath != null && !soundPath.isEmpty()) {
+                pathIndex = MathHelper.clamp(currentTick, 0, soundPath.size() - 1); // 双重保险，防止浮点数精度问题
+            } else {
+                pathIndex = 0; // 当没有soundPath时，使用默认索引
+            }
             Vec3d offset = soundPath.get(pathIndex);
             currentPos = currentPos.add(offset);
         }
