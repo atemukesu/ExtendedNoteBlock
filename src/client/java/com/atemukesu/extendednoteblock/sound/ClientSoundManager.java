@@ -107,11 +107,32 @@ public class ClientSoundManager {
      */
     public static void stopSound(BlockPos pos) {
         PLAYING_SOUNDS.values().removeIf(sound -> {
-            if (sound.getPos().equals(pos)) {
+            if (sound.getOriginPos().equals(pos)) {
                 sound.stopSound();
                 return true;
             }
             return false;
         });
+    }
+    
+    // ============== Advanced Features v1.4.0 ==============
+    /**
+     * 更新一个正在播放的声音的高级参数：音量、音高和位置。
+     * 
+     * @param soundId 声音的唯一ID。
+     * @param vol 新的音量值 (0.0 - 2.0)。
+     * @param pitchMul 音高倍率，用于弯音效果。
+     * @param x 新的声音位置X坐标。
+     * @param y 新的声音位置Y坐标。
+     * @param z 新的声音位置Z坐标。
+     */
+    public static void updateAdvanced(UUID soundId, float vol, float pitchMul, double x, double y, double z) {
+        StoppablePositionalSoundInstance sound = PLAYING_SOUNDS.get(soundId);
+        if (sound != null) {
+            sound.setVolume(vol);
+            // 基础音高已经在播放时确定，现在应用弯音倍率
+            sound.setPitch(sound.getBasePitch() * pitchMul);
+            sound.setPosition((float)x, (float)y, (float)z);
+        }
     }
 }

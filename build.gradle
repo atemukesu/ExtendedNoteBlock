@@ -35,6 +35,8 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+	// exp4j - 数学表达式求值库
+	implementation "net.objecthunter:exp4j:0.4.8"
 }
 
 processResources {

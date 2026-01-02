@@ -1,11 +1,13 @@
 package com.atemukesu.extendednoteblock.sound;
 
+import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
 import com.atemukesu.extendednoteblock.network.ModMessages;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,13 +20,38 @@ public class ServerSoundManager {
     }
 
     public static void playSound(ServerWorld world, BlockPos pos, int instrumentId, int note, int velocity,
-            int sustainTicks, int fadeInTicks, int fadeOutTicks) {
+                                 int sustainTicks, int fadeInTicks, int fadeOutTicks) {
         UUID soundId = UUID.randomUUID();
         ActiveSoundFader fader = new ActiveSoundFader(world, pos, soundId, velocity, sustainTicks, fadeInTicks,
                 fadeOutTicks);
         activeSounds.put(soundId, fader);
         float initialVolume = (fadeInTicks <= 1) ? (velocity / 127.0f) : 0.001f; // 音量大小
         ModMessages.sendStartSoundToClients(world, pos, soundId, instrumentId, note, velocity, initialVolume); // 传递初始音量
+    }
+
+    // ============== Advanced Features v1.4.0 ==============
+    // 重载方法，用于播放带有高级曲线数据的声音
+    public static void playAdvancedSound(ServerWorld world, BlockPos pos, int instrumentId, int note, int velocity,
+                                         int sustainTicks, int fadeInTicks, int fadeOutTicks,
+                                         List<Float> pitchBendCurve, List<Float> volumeCurve, List<net.minecraft.util.math.Vec3d> soundPath) {
+
+        UUID soundId = UUID.randomUUID();
+        ActiveSoundFader fader = new ActiveSoundFader(world, pos, soundId, velocity, sustainTicks, fadeInTicks, fadeOutTicks);
+
+        fader.setPitchBendCurve(pitchBendCurve);
+        fader.setVolumeCurve(volumeCurve);
+        fader.setSoundPath(soundPath);
+
+        // 关键点：获取 t=0 时的状态
+        ActiveSoundFader.SoundState initial = fader.calculateStateAt(0.0f);
+
+        activeSounds.put(soundId, fader);
+
+        // 调用刚才在 ModMessages 里写的方法
+        ModMessages.sendStartAdvancedSoundToClients(
+                world, pos, soundId, instrumentId, note,
+                initial.volume, initial.pitch, initial.x, initial.y, initial.z
+        );
     }
 
     public static void stopSound(ServerWorld world, BlockPos pos) {

@@ -10,7 +10,11 @@ import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.block.Block;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ExtendedNoteBlockScreenHandler extends ScreenHandler {
     public final ExtendedNoteBlockEntity blockEntity;
@@ -37,6 +41,43 @@ public class ExtendedNoteBlockScreenHandler extends ScreenHandler {
         this.propertyDelegate.set(4, buf.readInt()); // fadeInTime
         this.propertyDelegate.set(5, buf.readInt()); // fadeOutTime
         this.propertyDelegate.set(6, buf.readInt()); // instrumentId
+
+        // ============== Advanced Features v1.4.0 ==============
+        // Read advanced settings data from buffer
+        int pitchBendCurveSize = buf.readInt();
+        List<Float> pitchBendCurve = new ArrayList<>();
+        for (int i = 0; i < pitchBendCurveSize; i++) {
+            pitchBendCurve.add(buf.readFloat());
+        }
+
+        int volumeCurveSize = buf.readInt();
+        List<Float> volumeCurve = new ArrayList<>();
+        for (int i = 0; i < volumeCurveSize; i++) {
+            volumeCurve.add(buf.readFloat());
+        }
+
+        int soundPathSize = buf.readInt();
+        List<Vec3d> soundPath = new ArrayList<>();
+        for (int i = 0; i < soundPathSize; i++) {
+            double x = buf.readDouble();
+            double y = buf.readDouble();
+            double z = buf.readDouble();
+            soundPath.add(new Vec3d(x, y, z));
+        }
+
+        String storedExpressionX = buf.readString();
+        String storedExpressionY = buf.readString();
+        String storedExpressionZ = buf.readString();
+
+        // 在主线程中设置这些值，以确保它们在GUI打开时可用
+        // 在客户端，直接设置值（客户端方块实体是只读副本）
+        // 在服务器端，也直接设置值（已在正确的线程中）
+        this.blockEntity.setPitchBendCurve(pitchBendCurve);
+        this.blockEntity.setVolumeCurve(volumeCurve);
+        this.blockEntity.setSoundPath(soundPath);
+        this.blockEntity.setStoredExpressionX(storedExpressionX);
+        this.blockEntity.setStoredExpressionY(storedExpressionY);
+        this.blockEntity.setStoredExpressionZ(storedExpressionZ);
     }
 
     public int getNote() {

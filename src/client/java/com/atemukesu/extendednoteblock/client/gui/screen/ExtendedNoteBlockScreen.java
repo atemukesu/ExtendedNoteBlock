@@ -4,13 +4,12 @@ import com.atemukesu.extendednoteblock.client.gui.widget.ComboBoxWidget;
 import com.atemukesu.extendednoteblock.map.InstrumentMap;
 import com.atemukesu.extendednoteblock.network.ModMessages;
 import com.atemukesu.extendednoteblock.screen.ExtendedNoteBlockScreenHandler;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -18,6 +17,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,6 @@ import java.util.function.Consumer;
  * </ul>
  * 当屏幕关闭时，所有更改都会通过网络数据包发送到服务器。
  */
-@Environment(EnvType.CLIENT)
 public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScreenHandler> {
     private int note;
     private int velocity;
@@ -198,6 +197,17 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
             this.fadeOutTime = parseInteger(text, 0, 400, this.fadeOutTime);
         });
         this.addDrawableChild(this.fadeOutField);
+        
+        // 优化高级设置按钮位置：放在乐器选择框的右侧，或者标题栏右侧
+        int advBtnWidth = 80;
+        // 放在标题行右侧，留出安全边距
+        int advancedButtonX = this.width - advBtnWidth - 10;
+        int advancedButtonY = 10; 
+
+        this.addDrawableChild(ButtonWidget.builder(
+            Text.translatable("gui.extendednoteblock.advanced_settings").formatted(Formatting.GOLD), 
+            button -> client.setScreen(new AdvancedSettingsScreen(this, this.handler.blockEntity))
+        ).dimensions(advancedButtonX, advancedButtonY, advBtnWidth, 20).build());
     }
 
     /**

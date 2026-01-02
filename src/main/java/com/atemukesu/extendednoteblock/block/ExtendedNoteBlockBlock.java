@@ -69,16 +69,34 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
                     pos.getZ() + 0.5D,
                     0, particleColor, 0.0D, 0.0D, 1.0D);
 
-            // 使用新的管理器
-            ServerSoundManager.playSound(
-                    serverWorld,
-                    pos,
-                    blockEntity.getInstrumentId(),
-                    blockEntity.getNote(),
-                    blockEntity.getVelocity(),
-                    blockEntity.getSustain(),
-                    blockEntity.getFadeInTime(),
-                    blockEntity.getFadeOutTime());
+            // ============== Advanced Features v1.4.0 ==============
+            // 检查是否启用了高级模式
+            if (blockEntity.isAdvancedModeEnabled()) {
+                // 使用新的高级播放方法
+                ServerSoundManager.playAdvancedSound(
+                        serverWorld,
+                        pos,
+                        blockEntity.getInstrumentId(),
+                        blockEntity.getNote(),
+                        blockEntity.getVelocity(),
+                        blockEntity.getSustain(),
+                        blockEntity.getFadeInTime(),
+                        blockEntity.getFadeOutTime(),
+                        blockEntity.getPitchBendCurve(),
+                        blockEntity.getVolumeCurve(),
+                        blockEntity.getSoundPath());
+            } else {
+                // 使用传统方法
+                ServerSoundManager.playSound(
+                        serverWorld,
+                        pos,
+                        blockEntity.getInstrumentId(),
+                        blockEntity.getNote(),
+                        blockEntity.getVelocity(),
+                        blockEntity.getSustain(),
+                        blockEntity.getFadeInTime(),
+                        blockEntity.getFadeOutTime());
+            }
         }
     }
 

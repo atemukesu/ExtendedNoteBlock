@@ -12,6 +12,11 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtFloat;
+import net.minecraft.util.math.Vec3d;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
@@ -67,6 +72,52 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
      * 淡出播放时间 (0-?)，决定音符淡出。
      */
     private int fadeOutTime = 0;
+
+    // ============== Advanced Features v1.4.0 ==============
+    /**
+     * 弯音轮数据 (Pitch Bend Curve)。
+     * 存储一系列音高偏移值（单位：音分 cents，1 半音 = 100 cents）。
+     * 这些值会在声音持续时间内进行插值。
+     * 如果为空或 null，则使用基础 note 值。
+     */
+    private List<Float> pitchBendCurve = new ArrayList<>();
+
+    /**
+     * 音量曲线数据 (Volume Curve)。
+     * 存储一系列音量值 (0.0 - 2.0)，用于覆盖基础 velocity 计算的音量。
+     * 这些值会在声音持续时间内进行插值。
+     * 如果为空或 null，则使用基础 velocity 值。
+     */
+    private List<Float> volumeCurve = new ArrayList<>();
+
+    /**
+     * 声源移动路径 (Sound Path)。
+     * 存储一系列相对位置偏移量 (相对于音符盒位置)。
+     * 声音位置会在持续时间内在这些点之间进行插值。
+     * 如果为空或 null，则声音位置固定在音符盒位置。
+     */
+    private List<Vec3d> soundPath = new ArrayList<>();
+
+    /**
+     * 存储数学表达式X(t)的字符串，仅用于在NBT中保存表达式本身
+     */
+    private String storedExpressionX = "";
+
+    /**
+     * 存储数学表达式Y(t)的字符串，仅用于在NBT中保存表达式本身
+     */
+    private String storedExpressionY = "";
+
+    /**
+     * 存储数学表达式Z(t)的字符串，仅用于在NBT中保存表达式本身
+     */
+    private String storedExpressionZ = "";
+
+    /**
+     * 标记是否启用高级功能。这简化了兼容性检查。
+     * 如果任何高级曲线数据非空，则自动设置为 true。
+     */
+    private boolean advancedModeEnabled = false;
 
     // [新增] 用于跟踪延迟播放任务，以便在需要时可以取消它。
     // transient 关键字确保它不会被序列化到NBT中。
@@ -143,12 +194,64 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
      */
     @Override
     protected void writeNbt(NbtCompound nbt) {
+        // Legacy data - always written for backward compatibility
         nbt.putInt("note", note);
         nbt.putInt("sustainTime", sustainTime);
         nbt.putInt("velocity", velocity);
         nbt.putInt("delayedPlayingTime", delayedPlayingTime);
         nbt.putInt("fadeInTime", fadeInTime);
         nbt.putInt("fadeOutTime", fadeOutTime);
+
+        // Advanced Features v1.4.0
+        NbtCompound advancedData = new NbtCompound();
+
+        // Write Pitch Bend Curve
+        if (!pitchBendCurve.isEmpty()) {
+            NbtList pitchList = new NbtList();
+            for (Float f : pitchBendCurve) {
+                pitchList.add(NbtFloat.of(f));
+            }
+            advancedData.put("PitchBendCurve", pitchList);
+        }
+
+        // Write Volume Curve
+        if (!volumeCurve.isEmpty()) {
+            NbtList volumeList = new NbtList();
+            for (Float f : volumeCurve) {
+                volumeList.add(NbtFloat.of(f));
+            }
+            advancedData.put("VolumeCurve", volumeList);
+        }
+
+        // Write Sound Path
+        if (!soundPath.isEmpty()) {
+            NbtList pathList = new NbtList();
+            for (Vec3d pos : soundPath) {
+                NbtCompound posNbt = new NbtCompound();
+                posNbt.putDouble("x", pos.x);
+                posNbt.putDouble("y", pos.y);
+                posNbt.putDouble("z", pos.z);
+                pathList.add(posNbt);
+            }
+            advancedData.put("SoundPath", pathList);
+        }
+
+        // Write stored expressions
+        if (!storedExpressionX.isEmpty()) {
+            advancedData.putString("ExpressionX", storedExpressionX);
+        }
+        if (!storedExpressionY.isEmpty()) {
+            advancedData.putString("ExpressionY", storedExpressionY);
+        }
+        if (!storedExpressionZ.isEmpty()) {
+            advancedData.putString("ExpressionZ", storedExpressionZ);
+        }
+
+        // Only save AdvancedData if it contains something
+        if (!advancedData.isEmpty()) {
+            nbt.put("AdvancedData", advancedData);
+        }
+
         super.writeNbt(nbt);
     }
 
@@ -160,12 +263,70 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
     @Override
     public void readNbt(NbtCompound nbt) {
         super.readNbt(nbt);
+        // Read legacy data
         this.note = nbt.getInt("note");
         this.sustainTime = nbt.getInt("sustainTime");
         this.velocity = nbt.getInt("velocity");
         this.delayedPlayingTime = nbt.getInt("delayedPlayingTime");
         this.fadeInTime = nbt.getInt("fadeInTime");
         this.fadeOutTime = nbt.getInt("fadeOutTime");
+
+        // Read Advanced Features v1.4.0
+        this.pitchBendCurve.clear();
+        this.volumeCurve.clear();
+        this.soundPath.clear();
+        this.storedExpressionX = "";
+        this.storedExpressionY = "";
+        this.storedExpressionZ = "";
+        this.advancedModeEnabled = false;
+
+        if (nbt.contains("AdvancedData")) {
+            NbtCompound advancedData = nbt.getCompound("AdvancedData");
+
+            // Read Pitch Bend Curve
+            if (advancedData.contains("PitchBendCurve")) {
+                NbtList pitchList = advancedData.getList("PitchBendCurve", 5); // 5 = Float type
+                for (int i = 0; i < pitchList.size(); i++) {
+                    this.pitchBendCurve.add(pitchList.getFloat(i));
+                }
+            }
+
+            // Read Volume Curve
+            if (advancedData.contains("VolumeCurve")) {
+                NbtList volumeList = advancedData.getList("VolumeCurve", 5); // 5 = Float type
+                for (int i = 0; i < volumeList.size(); i++) {
+                    this.volumeCurve.add(volumeList.getFloat(i));
+                }
+            }
+
+            // Read Sound Path
+            if (advancedData.contains("SoundPath")) {
+                NbtList pathList = advancedData.getList("SoundPath", 10); // 10 = Compound type
+                for (int i = 0; i < pathList.size(); i++) {
+                    NbtCompound posNbt = pathList.getCompound(i);
+                    double x = posNbt.getDouble("x");
+                    double y = posNbt.getDouble("y");
+                    double z = posNbt.getDouble("z");
+                    this.soundPath.add(new Vec3d(x, y, z));
+                }
+            }
+
+            // Read stored expressions
+            if (advancedData.contains("ExpressionX")) {
+                this.storedExpressionX = advancedData.getString("ExpressionX");
+            }
+            if (advancedData.contains("ExpressionY")) {
+                this.storedExpressionY = advancedData.getString("ExpressionY");
+            }
+            if (advancedData.contains("ExpressionZ")) {
+                this.storedExpressionZ = advancedData.getString("ExpressionZ");
+            }
+
+            // Enable advanced mode if any advanced data exists
+            this.advancedModeEnabled = !this.pitchBendCurve.isEmpty() ||
+                    !this.volumeCurve.isEmpty() ||
+                    !this.soundPath.isEmpty();
+        }
     }
 
     /**
@@ -259,6 +420,143 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         return this.fadeOutTime;
     }
 
+    // ============== Advanced Features Getters v1.4.0 ==============
+
+    /**
+     * 获取弯音轮曲线数据。
+     *
+     * @return 弯音轮曲线 (音分值列表)，可能为空列表。
+     */
+    public List<Float> getPitchBendCurve() {
+        return this.pitchBendCurve;
+    }
+
+    /**
+     * 获取音量曲线数据。
+     *
+     * @return 音量曲线列表，可能为空列表。
+     */
+    public List<Float> getVolumeCurve() {
+        return this.volumeCurve;
+    }
+
+    /**
+     * 获取声源移动路径数据。
+     *
+     * @return 声源移动路径 (相对位置偏移列表)，可能为空列表。
+     */
+    public List<Vec3d> getSoundPath() {
+        return this.soundPath;
+    }
+
+    /**
+     * 获取存储的X轴表达式字符串
+     *
+     * @return X轴表达式字符串，可能为空字符串
+     */
+    public String getStoredExpressionX() {
+        return this.storedExpressionX;
+    }
+
+    /**
+     * 获取存储的Y轴表达式字符串
+     *
+     * @return Y轴表达式字符串，可能为空字符串
+     */
+    public String getStoredExpressionY() {
+        return this.storedExpressionY;
+    }
+
+    /**
+     * 获取存储的Z轴表达式字符串
+     *
+     * @return Z轴表达式字符串，可能为空字符串
+     */
+    public String getStoredExpressionZ() {
+        return this.storedExpressionZ;
+    }
+
+    /**
+     * 检查是否启用了高级模式。
+     *
+     * @return 如果任何高级曲线数据非空则返回 true。
+     */
+    public boolean isAdvancedModeEnabled() {
+        return this.advancedModeEnabled;
+    }
+
+    /**
+     * 设置弯音轮曲线数据。
+     *
+     * @param curve 新的弯音轮曲线。
+     */
+    public void setPitchBendCurve(List<Float> curve) {
+        this.pitchBendCurve = new ArrayList<>(curve);
+        updateAdvancedModeStatus();
+        markDirty();
+    }
+
+    /**
+     * 设置音量曲线数据。
+     *
+     * @param curve 新的音量曲线。
+     */
+    public void setVolumeCurve(List<Float> curve) {
+        this.volumeCurve = new ArrayList<>(curve);
+        updateAdvancedModeStatus();
+        markDirty();
+    }
+
+    /**
+     * 设置声源移动路径数据。
+     *
+     * @param path 新的声源移动路径。
+     */
+    public void setSoundPath(List<Vec3d> path) {
+        this.soundPath = new ArrayList<>(path);
+        updateAdvancedModeStatus();
+        markDirty();
+    }
+
+    /**
+     * 设置存储的X轴表达式字符串
+     *
+     * @param expression X轴表达式字符串
+     */
+    public void setStoredExpressionX(String expression) {
+        this.storedExpressionX = expression;
+        markDirty();
+    }
+
+    /**
+     * 设置存储的Y轴表达式字符串
+     *
+     * @param expression Y轴表达式字符串
+     */
+    public void setStoredExpressionY(String expression) {
+        this.storedExpressionY = expression;
+        markDirty();
+    }
+
+    /**
+     * 设置存储的Z轴表达式字符串
+     *
+     * @param expression Z轴表达式字符串
+     */
+    public void setStoredExpressionZ(String expression) {
+        this.storedExpressionZ = expression;
+        markDirty();
+    }
+
+    /**
+     * 更新高级模式状态。
+     */
+    private void updateAdvancedModeStatus() {
+        this.advancedModeEnabled = !this.pitchBendCurve.isEmpty() ||
+                !this.volumeCurve.isEmpty() ||
+                !this.soundPath.isEmpty();
+    }
+
     /**
      * 从服务器更新方块实体的数值，通常由数据包调用。
      * 会对输入值进行范围检查，确保它们在有效范围内。
@@ -289,7 +587,7 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
     }
 
     /**
-     * 标记方块实体为“脏数据”，这会导致它被保存到磁盘，
+     * 标记方块实体为"脏数据"，这会导致它被保存到磁盘，
      * 并通过调用 {@code world.updateListeners} 将更新同步到客户端。
      */
     @Override
@@ -344,5 +642,29 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         buf.writeInt(this.fadeInTime);
         buf.writeInt(this.fadeOutTime);
         buf.writeInt(this.getInstrumentId());
+        
+        // ============== Advanced Features v1.4.0 ==============
+        // Write advanced settings data
+        buf.writeInt(this.pitchBendCurve.size());
+        for (Float value : this.pitchBendCurve) {
+            buf.writeFloat(value);
+        }
+        
+        buf.writeInt(this.volumeCurve.size());
+        for (Float value : this.volumeCurve) {
+            buf.writeFloat(value);
+        }
+        
+        buf.writeInt(this.soundPath.size());
+        for (Vec3d vec : this.soundPath) {
+            buf.writeDouble(vec.x);
+            buf.writeDouble(vec.y);
+            buf.writeDouble(vec.z);
+        }
+        
+        // Write stored expressions
+        buf.writeString(this.storedExpressionX);
+        buf.writeString(this.storedExpressionY);
+        buf.writeString(this.storedExpressionZ);
     }
 }
