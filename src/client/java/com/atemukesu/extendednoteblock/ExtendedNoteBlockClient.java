@@ -10,7 +10,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -45,6 +44,7 @@ public class ExtendedNoteBlockClient implements ClientModInitializer {
         ConfigManager.initialize();
         SoundPackManager.getInstance().scanPacks();
         ClientModMessages.registerS2CPackets();
+        com.atemukesu.extendednoteblock.util.ClientSmoothMoveManager.init();
 
         // Register KeyBindings
         openWandGuiKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(

@@ -37,6 +37,7 @@ dependencies {
 
 	// exp4j - 数学表达式求值库
 	implementation "net.objecthunter:exp4j:0.4.8"
+	include "net.objecthunter:exp4j:0.4.8"
 }
 
 processResources {

@@ -25,7 +25,7 @@ public class ExtendedNoteBlock implements ModInitializer {
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	
+
 	public static final Item CONDUCTOR_WAND = new ConductorWandItem();
 
 	@Override
@@ -37,12 +37,14 @@ public class ExtendedNoteBlock implements ModInitializer {
 		ModItemGroups.registerItemGroups();
 		ModBlockEntities.registerBlockEntities();
 		ModScreenHandlers.registerScreenHandlers();
-        ModMessages.registerC2SPackets();
+		ModMessages.registerC2SPackets();
 		ServerSoundManager.initialize();
-		
+		com.atemukesu.extendednoteblock.command.ModCommands.registerCommands();
+		com.atemukesu.extendednoteblock.util.SmoothMoveManager.init();
+
 		// Register Conductor Wand
 		Registry.register(Registries.ITEM, new Identifier(MOD_ID, "conductor_wand"), CONDUCTOR_WAND);
-		
+
 		LOGGER.info("Extended Note Block Loaded.");
 	}
 }

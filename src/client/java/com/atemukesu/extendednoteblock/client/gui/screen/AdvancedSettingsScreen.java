@@ -28,8 +28,11 @@ public class AdvancedSettingsScreen extends Screen {
     private MathExpressionWidget exprX, exprY, exprZ;
 
     // 用于存储表达式字符串，以便在NBT中保存
+    @SuppressWarnings("unused")
     private String storedExprX = "";
+    @SuppressWarnings("unused")
     private String storedExprY = "";
+    @SuppressWarnings("unused")
     private String storedExprZ = "";
     private TextFieldWidget rangeInput;
 
@@ -71,9 +74,9 @@ public class AdvancedSettingsScreen extends Screen {
                 -range, range, 0xFFFFFF55, false);
 
         // Range Configuration Input
-        // Positioned in the gap between the two curves, right-aligned
-        int rangeInputX = 20 + canvasWidth - 50;
-        int rangeControlY = pitchCurveY - 22;
+        // Positioned below pitch curve, aligned right
+        int rangeControlY = pitchCurveY + canvasHeight + 5; // Below the curve
+        int rangeInputX = 20 + canvasWidth - 50 - 22; // Aligned such that "+" button ends at canvasWidth + 20
 
         // Add +/- Buttons for Range
         addDrawableChild(ButtonWidget.builder(Text.literal("-"), b -> adjustRange(-1))
@@ -102,9 +105,9 @@ public class AdvancedSettingsScreen extends Screen {
         addDrawableChild(volCurve);
         addDrawableChild(pitchCurve);
 
-        // 将输入框放在右侧或下方，排版更像专业DAW
-        // Move editY down to allow space for labels above
-        int editY = pitchCurveY + canvasHeight + 20;
+        // Expr Area
+        int editY = pitchCurveY + canvasHeight + 50; // Moved down further
+
         exprX = new MathExpressionWidget(textRenderer, 20, editY, canvasWidth / 3 - 5, 20,
                 Text.translatable("gui.extendednoteblock.advanced.x_axis"));
         exprY = new MathExpressionWidget(textRenderer, 20 + canvasWidth / 3, editY, canvasWidth / 3 - 5, 20,
@@ -148,9 +151,15 @@ public class AdvancedSettingsScreen extends Screen {
         int sidebarWidth = 100;
         int canvasWidth = this.width - sidebarWidth - 30;
         int canvasHeight = (this.height - 160) / 2; // Match init calculation
+        int pitchCurveY = 35 + canvasHeight + 30; // gap=30
+
+        // Draw Range Label
+        // Aligned to left of the "-" button
+        int rangeInputX = 20 + canvasWidth - 50 - 22;
         context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.advanced.range_label"),
-                20 + canvasWidth - 100,
-                45 + canvasHeight - 16 + 5, 0xAAAAAA); // Adjusted Y
+                rangeInputX - 22
+                        - textRenderer.getWidth(Text.translatable("gui.extendednoteblock.advanced.range_label")) - 5,
+                pitchCurveY + canvasHeight + 5 + 4, 0xAAAAAA); // Aligned Y with input
 
         context.drawCenteredTextWithShadow(textRenderer, title.copy().formatted(Formatting.BOLD), width / 2, 8,
                 0xFFAA00);
@@ -177,6 +186,13 @@ public class AdvancedSettingsScreen extends Screen {
         // Removed the generic valid math label at bottom
 
         // Draw labels above each input box
+
+        // Header for Sound Source Movement
+        int editY = pitchCurveY + canvasHeight + 50;
+        context.drawTextWithShadow(textRenderer,
+                Text.translatable("gui.extendednoteblock.advanced.movement_expressions"),
+                20, editY - 25, 0xE0E0E0);
+
         context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.advanced.x_axis"),
                 exprX.getX(), exprX.getY() - 10, 0xAAAAAA);
         context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.advanced.y_axis"),

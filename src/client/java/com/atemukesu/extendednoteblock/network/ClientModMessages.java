@@ -104,6 +104,17 @@ public class ClientModMessages {
                         client.setScreen(new ConductorScreen(min, max, counts, samples));
                     });
                 });
+
+        // 注册平滑移动包
+        ClientPlayNetworking.registerGlobalReceiver(ModMessages.SMOOTH_MOVE_ID,
+                (client, handler, buf, responseSender) -> {
+                    double vx = buf.readDouble();
+                    double vy = buf.readDouble();
+                    double vz = buf.readDouble();
+                    int duration = buf.readInt();
+                    client.execute(() -> com.atemukesu.extendednoteblock.util.ClientSmoothMoveManager
+                            .startMove(new Vec3d(vx, vy, vz), duration));
+                });
     }
 
     // ============== Conductor's Wand Methods ==============

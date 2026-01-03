@@ -20,13 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// Removed unused imports handled by optimization? 
-// No, I need to keep imports that are actually used.
-// Checking what is used: ButtonWidget (Yes), TextFieldWidget (Yes), NbtCompound (Yes), Text (Yes), BlockPos (Yes)
-// CurvePoint and Vec3d are used in previous code but mainly NbtList handling now?
-// Actually VisualCurveWidget handles points.
-// Let's keep just what we need.
-
 public class ConductorScreen extends Screen {
     private final BlockPos min, max;
     private final NbtCompound sample;
@@ -69,7 +62,7 @@ public class ConductorScreen extends Screen {
         int sidebarWidth = 160; // Increased sidebar width for mode buttons
         int canvasWidth = this.width - sidebarWidth - 30;
         int canvasHeight = (this.height - 180) / 2;
-        int gap = 20;
+        int gap = 35;
 
         // --- Left Sidebar: Basic Parameters ---
         int leftX = 20;
@@ -107,6 +100,9 @@ public class ConductorScreen extends Screen {
                 0f, 2f, 0xFF55FF55, true);
         addDrawableChild(volCurve);
 
+        // Vol Mode Button (Top Right)
+        createModeButton("volCurve", curveX + canvasWidth - 20, curveYStart - 22);
+
         // Pitch Curve
         int pitchY = curveYStart + canvasHeight + gap;
         pitchCurve = new VisualCurveWidget(curveX, pitchY, canvasWidth, canvasHeight,
@@ -115,24 +111,56 @@ public class ConductorScreen extends Screen {
                 -pitchBendRange, pitchBendRange, 0xFFFFFF55, false);
         addDrawableChild(pitchCurve);
 
-        // Range Config for Pitch
-        rangeInput = new TextFieldWidget(textRenderer, curveX + canvasWidth - 50, pitchY - 18, 50, 16,
+        // Range Config for Pitch with +/- buttons
+        // Layout: [KeepBtn] [Label] [-] [Input] [+]
+        // Positioned at top-right of the pitch curve header area
+
+        int rangeGroupY = pitchY - 20;
+        int maxX = curveX + canvasWidth;
+
+        // 1. Plus Button (Rightmost)
+        addDrawableChild(ButtonWidget.builder(Text.literal("+"), b -> adjustRange(1))
+                .dimensions(maxX - 20, rangeGroupY, 20, 20).build());
+
+        // 2. Range Input (30px wide, 2px gap)
+        rangeInput = new TextFieldWidget(textRenderer, maxX - 20 - 2 - 30, rangeGroupY, 30, 20,
                 Text.translatable("gui.extendednoteblock.advanced.range"));
         rangeInput.setText(String.valueOf(pitchBendRange));
         rangeInput.setChangedListener(this::onRangeChanged);
         addDrawableChild(rangeInput);
 
-        // --- Bottom Area: Expressions ---
-        int exprYPos = pitchY + canvasHeight + 20;
-        int exprWidth = (canvasWidth) / 3 - 5;
+        // 3. Minus Button (2px gap from input)
+        addDrawableChild(ButtonWidget.builder(Text.literal("-"), b -> adjustRange(-1))
+                .dimensions(maxX - 20 - 2 - 30 - 2 - 20, rangeGroupY, 20, 20).build());
 
-        exprX = new MathExpressionWidget(textRenderer, curveX, exprYPos, exprWidth, 20,
+        // 4. Pitch Keep Mode Button (Moved further left to avoid label overlap)
+        createModeButton("pitchCurve", maxX - 150, rangeGroupY);
+
+        // --- Bottom Area: Expressions ---
+        int exprYPos = pitchY + canvasHeight + 30;
+        int sectionWidth = canvasWidth / 3;
+        int btnSize = 20;
+        int exprInputWidth = sectionWidth - btnSize - 5;
+
+        // Expr X
+        int x1 = curveX;
+        createModeButton("exprX", x1, exprYPos);
+        exprX = new MathExpressionWidget(textRenderer, x1 + btnSize + 2, exprYPos, exprInputWidth, 20,
                 Text.translatable("gui.extendednoteblock.advanced.x_axis"));
-        exprY = new MathExpressionWidget(textRenderer, curveX + exprWidth + 5, exprYPos, exprWidth, 20,
+
+        // Expr Y
+        int x2 = curveX + sectionWidth;
+        createModeButton("exprY", x2, exprYPos);
+        exprY = new MathExpressionWidget(textRenderer, x2 + btnSize + 2, exprYPos, exprInputWidth, 20,
                 Text.translatable("gui.extendednoteblock.advanced.y_axis"));
-        exprZ = new MathExpressionWidget(textRenderer, curveX + (exprWidth + 5) * 2, exprYPos, exprWidth, 20,
+
+        // Expr Z
+        int x3 = curveX + sectionWidth * 2;
+        createModeButton("exprZ", x3, exprYPos);
+        exprZ = new MathExpressionWidget(textRenderer, x3 + btnSize + 2, exprYPos, exprInputWidth, 20,
                 Text.translatable("gui.extendednoteblock.advanced.z_axis"));
 
+        // Callbacks
         exprX.setTextChangeCallback(t -> validateSingleExpression("X", t, () -> errorMessageX, m -> errorMessageX = m,
                 () -> errorDisplayTimeX, time -> errorDisplayTimeX = time));
         exprY.setTextChangeCallback(t -> validateSingleExpression("Y", t, () -> errorMessageY, m -> errorMessageY = m,
@@ -143,6 +171,13 @@ public class ConductorScreen extends Screen {
         addDrawableChild(exprX);
         addDrawableChild(exprY);
         addDrawableChild(exprZ);
+
+        // Update visuals for Expr/Curve modes (initially Keep)
+        updateFieldVisuals("volCurve", -1);
+        updateFieldVisuals("pitchCurve", -1);
+        updateFieldVisuals("exprX", -1);
+        updateFieldVisuals("exprY", -1);
+        updateFieldVisuals("exprZ", -1);
 
         // --- Action Buttons ---
         int btnY = height - 30;
@@ -192,6 +227,21 @@ public class ConductorScreen extends Screen {
         return input;
     }
 
+    // New helper for simple Keep/Set toggle button
+    private void createModeButton(String key, int x, int y) {
+        fieldModes.putIfAbsent(key, -1); // Default Keep
+        ButtonWidget btn = ButtonWidget.builder(getModeText(fieldModes.get(key)), b -> {
+            int m = fieldModes.getOrDefault(key, -1);
+            // Toggle between -1 (Keep) and 0 (Set)
+            m = (m == -1) ? 0 : -1;
+            fieldModes.put(key, m);
+            b.setMessage(getModeText(m));
+            updateFieldVisuals(key, m);
+        }).dimensions(x, y, 20, 20).build();
+        fieldModeButtons.put(key, btn);
+        addDrawableChild(btn);
+    }
+
     private void cycleMode(String key, ButtonWidget btn) {
         int m = fieldModes.getOrDefault(key, -1);
         // Cycle: -1(Keep) -> 0(Set) -> 1(Add) -> 4(Sub) -> 2(Mult) -> 3(Div) -> -1
@@ -212,19 +262,48 @@ public class ConductorScreen extends Screen {
     }
 
     private void updateFieldVisuals(String key, int mode) {
-        TextFieldWidget input = fieldInputs.get(key);
-        if (input == null)
-            return;
+        // Handle Curves separately if needed (VisualCurveWidget doesn't have
+        // setEditable,
+        // but we can maybe change color or something? For now do nothing special for
+        // curves visually
+        // other than button text).
+        // Actually, users want to know if it's disabled.
+        // We can check key to see if it's an input widget
 
-        if (mode == -1) {
-            // Keep Mode: Disable input and gray out
-            input.setEditable(false);
-            input.setEditableColor(0xFF888888); // Gray
-        } else {
-            // Normal Mode
-            input.setEditable(true);
-            input.setEditableColor(0xFFE0E0E0); // White
+        if (fieldInputs.containsKey(key)) {
+            TextFieldWidget input = fieldInputs.get(key);
+            if (mode == -1) {
+                input.setEditable(false);
+                input.setEditableColor(0xFF888888);
+            } else {
+                input.setEditable(true);
+                input.setEditableColor(0xFFE0E0E0);
+            }
         }
+
+        // Expressions
+        MathExpressionWidget targetExpr = null;
+        if (key.equals("exprX"))
+            targetExpr = exprX;
+        if (key.equals("exprY"))
+            targetExpr = exprY;
+        if (key.equals("exprZ"))
+            targetExpr = exprZ;
+
+        if (targetExpr != null) {
+            if (mode == -1) {
+                targetExpr.setEditable(false);
+                targetExpr.setEditableColor(0xFF888888);
+            } else {
+                targetExpr.setEditable(true);
+                targetExpr.setEditableColor(0xFFE0E0E0);
+            }
+        }
+
+        // For Curves, we might want to flag them as disabled in their render?
+        // But VisualCurveWidget class is not open to modification here easily without
+        // reflection or adding methods.
+        // We'll rely on the "K" button status.
     }
 
     private Text getModeText(int mode) {
@@ -254,6 +333,20 @@ public class ConductorScreen extends Screen {
             }
         } catch (NumberFormatException e) {
             field.setText(String.valueOf(delta));
+        }
+    }
+
+    private void adjustRange(int delta) {
+        try {
+            int current = Integer.parseInt(rangeInput.getText());
+            int newVal = Math.max(1, Math.min(48, current + delta));
+            rangeInput.setText(String.valueOf(newVal));
+            // Trigger listener manually or let setText do it? setText usually doesn't
+            // trigger listener in older versions but does in newer.
+            // onRangeChanged handles the logic so it should be fine if setText triggers it.
+            // If not, we call it:
+            onRangeChanged(String.valueOf(newVal));
+        } catch (NumberFormatException ignored) {
         }
     }
 
@@ -328,8 +421,13 @@ public class ConductorScreen extends Screen {
                 exprZ.getX(), exprZ.getY() - 10, 0xAAAAAA);
 
         // Range Label
+        // Input is at maxX - 52.
+        // Minus btn is at maxX - 74.
+        // Draw label to left of Minus btn.
+        // Minus X is rangeInput.getX() - 22.
+        // Draw label at rangeInput.getX() - 22 - 45 roughly?
         context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.advanced.range_label"),
-                rangeInput.getX() - 50, rangeInput.getY() + 4, 0xAAAAAA);
+                rangeInput.getX() - 22 - 45, rangeInput.getY() + 6, 0xAAAAAA);
 
         super.render(context, mouseX, mouseY, delta);
 
@@ -358,29 +456,40 @@ public class ConductorScreen extends Screen {
         addUpdate(updates, "fadeOutTime", fadeOutInput);
 
         // 2. Curves
-        NbtList volPoints = new NbtList();
-        for (VisualCurveWidget.DataPoint p : volCurve.getPoints()) {
-            NbtCompound tag = new NbtCompound();
-            tag.putFloat("t", p.timePercent);
-            tag.putFloat("v", p.value);
-            volPoints.add(tag);
+        // 2. Curves
+        if (fieldModes.getOrDefault("volCurve", -1) != -1) {
+            NbtList volPoints = new NbtList();
+            for (VisualCurveWidget.DataPoint p : volCurve.getPoints()) {
+                NbtCompound tag = new NbtCompound();
+                tag.putFloat("t", p.timePercent);
+                tag.putFloat("v", p.value);
+                volPoints.add(tag);
+            }
+            advancedData.put("VolumePoints", volPoints);
         }
-        advancedData.put("VolumePoints", volPoints);
 
-        NbtList pitchPoints = new NbtList();
-        for (VisualCurveWidget.DataPoint p : pitchCurve.getPoints()) {
-            NbtCompound tag = new NbtCompound();
-            tag.putFloat("t", p.timePercent);
-            tag.putFloat("v", p.value);
-            pitchPoints.add(tag);
+        if (fieldModes.getOrDefault("pitchCurve", -1) != -1) {
+            NbtList pitchPoints = new NbtList();
+            for (VisualCurveWidget.DataPoint p : pitchCurve.getPoints()) {
+                NbtCompound tag = new NbtCompound();
+                tag.putFloat("t", p.timePercent);
+                tag.putFloat("v", p.value);
+                pitchPoints.add(tag);
+            }
+            advancedData.put("PitchBendPoints", pitchPoints);
         }
-        advancedData.put("PitchBendPoints", pitchPoints);
 
         // 3. Sound Path & Expressions
+        // 3. Sound Path & Expressions
         String sx = exprX.getText(), sy = exprY.getText(), sz = exprZ.getText();
-        advancedData.putString("ExpressionX", sx);
-        advancedData.putString("ExpressionY", sy);
-        advancedData.putString("ExpressionZ", sz);
+
+        // Only update if not in Keep mode
+        if (fieldModes.getOrDefault("exprX", -1) != -1)
+            advancedData.putString("ExpressionX", sx);
+        if (fieldModes.getOrDefault("exprY", -1) != -1)
+            advancedData.putString("ExpressionY", sy);
+        if (fieldModes.getOrDefault("exprZ", -1) != -1)
+            advancedData.putString("ExpressionZ", sz);
 
         int sustain = 40;
         try {
@@ -388,13 +497,10 @@ public class ConductorScreen extends Screen {
         } catch (Exception ignored) {
         }
 
-        if (!sx.isEmpty() || !sy.isEmpty() || !sz.isEmpty()) {
-            NbtList path = generatePath(sx, sy, sz, sustain);
-            if (path != null)
-                advancedData.put("SoundPath", path);
-        } else {
-            advancedData.put("SoundPath", new NbtList());
-        }
+        // Note: SoundPath is now recalculated on the server side in ModMessages.java
+        // This ensures it uses the correct per-block sustain and existing expression
+        // values if in Keep mode.
+        advancedData.put("SoundPath", new NbtList());
 
         if (!advancedData.isEmpty()) {
             rootPatch.put("AdvancedData", advancedData);

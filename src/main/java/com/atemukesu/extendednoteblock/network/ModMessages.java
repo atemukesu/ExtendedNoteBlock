@@ -35,6 +35,7 @@ public class ModMessages {
     public static final Identifier START_SOUND_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "start_sound");
     public static final Identifier UPDATE_VOLUME_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "update_volume");
     public static final Identifier STOP_SOUND_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "stop_sound");
+    public static final Identifier SMOOTH_MOVE_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "smooth_move");
 
     // ============== Advanced Features v1.4.0 ==============
     public static final Identifier ADVANCED_UPDATE_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "adv_update");
@@ -93,7 +94,10 @@ public class ModMessages {
 
                 int updatedCount = 0;
                 for (BlockPos p : BlockPos.iterate(min, max)) {
-                    BlockEntity be = world.getChunk(p).getBlockEntity(p);
+                    // Force load chunk
+                    net.minecraft.world.chunk.Chunk chunk = world.getChunk(p.getX() >> 4, p.getZ() >> 4,
+                            net.minecraft.world.chunk.ChunkStatus.FULL, true);
+                    BlockEntity be = chunk.getBlockEntity(p);
                     if (be != null) {
                         String id = Registries.BLOCK.getId(be.getCachedState().getBlock()).toString();
                         if (id.equals(targetBlockId)) {
@@ -110,6 +114,9 @@ public class ModMessages {
                                 applyNbtPatch(original, advancedPatch, 0); // Mode 0 = SET/MERGE
                             }
 
+                            // 3. Recalculate Sound Path if needed (Server Side Calc)
+                            recalculateSoundPath(original);
+
                             be.readNbt(original);
                             be.markDirty();
                             world.updateListeners(p, be.getCachedState(), be.getCachedState(), Block.NOTIFY_LISTENERS);
@@ -117,7 +124,8 @@ public class ModMessages {
                         }
                     }
                 }
-                player.sendMessage(Text.literal("§6[Conductor] §fUpdated " + updatedCount + " blocks."), false);
+                player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.update_result", updatedCount),
+                        false);
             });
         });
 
@@ -199,6 +207,16 @@ public class ModMessages {
         for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
             ServerPlayNetworking.send(player, STOP_SOUND_ID, buf);
         }
+    }
+
+    public static void sendSmoothMoveToClient(ServerPlayerEntity player, net.minecraft.util.math.Vec3d velocity,
+            int duration) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeDouble(velocity.x);
+        buf.writeDouble(velocity.y);
+        buf.writeDouble(velocity.z);
+        buf.writeInt(duration);
+        ServerPlayNetworking.send(player, SMOOTH_MOVE_ID, buf);
     }
 
     // ============== Advanced Features v1.4.0 ==============
@@ -296,10 +314,11 @@ public class ModMessages {
                 Math.max(pos1.getX(), pos2.getX()),
                 Math.max(pos1.getY(), pos2.getY()),
                 Math.max(pos1.getZ(), pos2.getZ()));
-        // 防止过大选区卡死
+        // 防止过大选区卡死 -> 修改为 INT_MAX (实际上不做限制，或者限制很大)
         long volume = (long) (max.getX() - min.getX() + 1) * (max.getY() - min.getY() + 1)
                 * (max.getZ() - min.getZ() + 1);
-        if (volume > 1000000) {
+        if (volume > Integer.MAX_VALUE) {
+            // 即使是 MAX_VALUE 也是非常大的，这里只是形式上的检查
             player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.selection_too_large", volume), false);
             return;
         }
@@ -312,8 +331,10 @@ public class ModMessages {
         // 遍历区域
         for (BlockPos p : BlockPos.iterate(min, max)) {
             // 强制加载区块以获取BlockEntity
-            // 注意：这可能导致性能波动，但符合需求"允许未加载区块"
-            BlockEntity be = world.getChunk(p).getBlockEntity(p);
+            // data processing in unloaded chunks
+            net.minecraft.world.chunk.Chunk chunk = world.getChunk(p.getX() >> 4, p.getZ() >> 4,
+                    net.minecraft.world.chunk.ChunkStatus.FULL, true);
+            BlockEntity be = chunk.getBlockEntity(p);
 
             if (be != null) {
                 String id = Registries.BLOCK.getId(be.getCachedState().getBlock()).toString();
@@ -398,6 +419,47 @@ public class ModMessages {
                 // Set / Replace mode or non-numeric
                 original.put(key, patch.get(key));
             }
+        }
+    }
+
+    // Server-side path generation
+    private static void recalculateSoundPath(NbtCompound nbt) {
+        if (!nbt.contains("AdvancedData", 10))
+            return;
+        NbtCompound adv = nbt.getCompound("AdvancedData");
+
+        String ex = adv.getString("ExpressionX");
+        String ey = adv.getString("ExpressionY");
+        String ez = adv.getString("ExpressionZ");
+
+        if (ex.isEmpty() && ey.isEmpty() && ez.isEmpty())
+            return;
+
+        int sustain = nbt.getInt("sustainTime");
+        if (sustain <= 0)
+            sustain = 40; // Default fallback
+
+        net.minecraft.nbt.NbtList list = new net.minecraft.nbt.NbtList();
+        try {
+            net.objecthunter.exp4j.Expression eX = new net.objecthunter.exp4j.ExpressionBuilder(ex.isEmpty() ? "0" : ex)
+                    .variables("t", "d").build();
+            net.objecthunter.exp4j.Expression eY = new net.objecthunter.exp4j.ExpressionBuilder(ey.isEmpty() ? "0" : ey)
+                    .variables("t", "d").build();
+            net.objecthunter.exp4j.Expression eZ = new net.objecthunter.exp4j.ExpressionBuilder(ez.isEmpty() ? "0" : ez)
+                    .variables("t", "d").build();
+
+            for (int i = 0; i < sustain; i++) {
+                double t = (double) i / Math.max(1, sustain);
+                NbtCompound pos = new NbtCompound();
+                pos.putDouble("x", eX.setVariable("t", t).setVariable("d", i).evaluate());
+                pos.putDouble("y", eY.setVariable("t", t).setVariable("d", i).evaluate());
+                pos.putDouble("z", eZ.setVariable("t", t).setVariable("d", i).evaluate());
+                list.add(pos);
+            }
+            adv.put("SoundPath", list);
+        } catch (Exception e) {
+            // If failed, maybe clear path? Or keep old?
+            // Keep old or do nothing to allow user to fix expression
         }
     }
 }

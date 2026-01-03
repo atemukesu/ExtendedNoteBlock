@@ -43,7 +43,7 @@ public class ActiveSoundFader {
     private float volumeOnForcedFadeOut = 1.0f;
 
     public ActiveSoundFader(ServerWorld world, BlockPos pos, UUID soundId, int velocity,
-                            int sustainTicks, int fadeInTicks, int fadeOutTicks) {
+            int sustainTicks, int fadeInTicks, int fadeOutTicks) {
         this.world = world;
         this.pos = pos;
         this.soundId = soundId;
@@ -72,7 +72,8 @@ public class ActiveSoundFader {
      * @return 如果声音的生命周期已结束，则返回 true。
      */
     public boolean tick() {
-        if (isFinished) return true;
+        if (isFinished)
+            return true;
         if (currentTick >= sustainTicks) {
             isFinished = true;
             return true;
@@ -81,21 +82,25 @@ public class ActiveSoundFader {
         // 计算当前进度 (0.0 ~ 1.0)
         // 使用 float 确保精度
         float progress = (sustainTicks > 1) ? (float) currentTick / (sustainTicks - 1) : 0.0f;
-        
+
         // 计算当前状态
         SoundState state = calculateStateAt(progress);
-        
+
         // 发送更新
-        ModMessages.sendAdvancedUpdateToClients(world, pos, soundId, state.volume, state.pitch, state.x, state.y, state.z);
+        ModMessages.sendAdvancedUpdateToClients(world, pos, soundId, state.volume, state.pitch, state.x, state.y,
+                state.z);
 
         currentTick++;
         return false;
     }
 
     // 线性插值辅助方法 - 根据插值计算规范进行改进
+    @SuppressWarnings("unused")
     private float interpolate(List<Float> curve, float progress) {
-        if (curve.isEmpty()) return 0;
-        if (curve.size() == 1) return curve.get(0);
+        if (curve.isEmpty())
+            return 0;
+        if (curve.size() == 1)
+            return curve.get(0);
 
         // 将进度映射到曲线数据点索引
         float floatIdx = progress * (curve.size() - 1);
@@ -103,8 +108,10 @@ public class ActiveSoundFader {
         float nextProgress = floatIdx - idx;
 
         // 确保索引不越界
-        if (idx >= curve.size() - 1) return curve.get(curve.size() - 1);
-        if (idx < 0) return curve.get(0);
+        if (idx >= curve.size() - 1)
+            return curve.get(curve.size() - 1);
+        if (idx < 0)
+            return curve.get(0);
 
         // 线性插值计算
         float leftValue = curve.get(idx);
@@ -114,16 +121,20 @@ public class ActiveSoundFader {
 
     // 向量插值辅助方法
     private Vec3d interpolateVec(List<Vec3d> curve, float progress) {
-        if (curve.isEmpty()) return Vec3d.ZERO;
-        if (curve.size() == 1) return curve.get(0);
+        if (curve.isEmpty())
+            return Vec3d.ZERO;
+        if (curve.size() == 1)
+            return curve.get(0);
 
         float floatIdx = progress * (curve.size() - 1);
         int idx = (int) Math.floor(floatIdx);
         float nextProgress = floatIdx - idx;
 
         // 确保索引不越界
-        if (idx >= curve.size() - 1) return curve.get(curve.size() - 1);
-        if (idx < 0) return curve.get(0);
+        if (idx >= curve.size() - 1)
+            return curve.get(curve.size() - 1);
+        if (idx < 0)
+            return curve.get(0);
 
         Vec3d start = curve.get(idx);
         Vec3d end = curve.get(idx + 1);
@@ -148,7 +159,7 @@ public class ActiveSoundFader {
         float baseMaxVolume = originalVelocity / 127.0f;
         float currentVolume = 0.0f;
         float currentPitchMul = 1.0f;
-        
+
         // 1. 计算音量 (线性插值)
         if (volumePoints != null && !volumePoints.isEmpty()) {
             float curveValue = interpolateValue(volumePoints, progress);
@@ -158,15 +169,15 @@ public class ActiveSoundFader {
             // 确保没有 volumePoints 时逻辑正确
             float volumeMultiplier = 1.0f;
             if (fadeInTicks > 0 && (progress * sustainTicks) <= fadeInTicks) {
-                float fadeInProgress = Math.min(1.0f, (float)(progress * sustainTicks) / (float) fadeInTicks);
+                float fadeInProgress = Math.min(1.0f, (float) (progress * sustainTicks) / (float) fadeInTicks);
                 volumeMultiplier = Math.min(volumeMultiplier, fadeInProgress);
             }
 
             // 计算淡出效果
             if (fadeOutTicks > 0 && sustainTicks > 0) {
                 int fadeOutStartTick = sustainTicks - fadeOutTicks;
-                if ((int)(progress * sustainTicks) > fadeOutStartTick) {
-                    int timeIntoFadeOut = (int)(progress * sustainTicks) - fadeOutStartTick;
+                if ((int) (progress * sustainTicks) > fadeOutStartTick) {
+                    int timeIntoFadeOut = (int) (progress * sustainTicks) - fadeOutStartTick;
                     float fadeOutProgress = 1.0f - ((float) timeIntoFadeOut / (float) (fadeOutTicks + 1));
                     volumeMultiplier = Math.min(volumeMultiplier, fadeOutProgress);
                 }
@@ -185,9 +196,9 @@ public class ActiveSoundFader {
         double curX = pos.getX() + 0.5;
         double curY = pos.getY() + 0.5;
         double curZ = pos.getZ() + 0.5;
-        
+
         if (soundPath != null && !soundPath.isEmpty()) {
-            int index = MathHelper.clamp((int)(progress * (soundPath.size() - 1)), 0, soundPath.size() - 1);
+            int index = MathHelper.clamp((int) (progress * (soundPath.size() - 1)), 0, soundPath.size() - 1);
             Vec3d offset = soundPath.get(index);
             curX += offset.x;
             curY += offset.y;
@@ -201,11 +212,14 @@ public class ActiveSoundFader {
      * 核心插值算法：根据时间进度 t，在关键点列表中找到前后两个点进行线性插值
      */
     private float interpolateValue(List<CurvePoint> points, float t) {
-        if (points.isEmpty()) return 0f;
-        
+        if (points.isEmpty())
+            return 0f;
+
         // 边界处理
-        if (t <= points.get(0).time) return points.get(0).value;
-        if (t >= points.get(points.size() - 1).time) return points.get(points.size() - 1).value;
+        if (t <= points.get(0).time)
+            return points.get(0).value;
+        if (t >= points.get(points.size() - 1).time)
+            return points.get(points.size() - 1).value;
 
         // 寻找区间
         for (int i = 0; i < points.size() - 1; i++) {
@@ -215,14 +229,15 @@ public class ActiveSoundFader {
             if (t >= p1.time && t <= p2.time) {
                 // 计算局部进度
                 float range = p2.time - p1.time;
-                if (range <= 0.00001f) return p1.value; // 防止除以0
-                
+                if (range <= 0.00001f)
+                    return p1.value; // 防止除以0
+
                 float localT = (t - p1.time) / range;
                 // Lerp: a + (b - a) * t
                 return p1.value + (p2.value - p1.value) * localT;
             }
         }
-        
+
         return points.get(points.size() - 1).value;
     }
 

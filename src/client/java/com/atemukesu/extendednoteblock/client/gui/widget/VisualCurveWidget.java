@@ -30,6 +30,7 @@ public class VisualCurveWidget extends ClickableWidget {
     private final String tooltipText;
     private float minY, maxY;
     private final int themeColor;
+    @SuppressWarnings("unused")
     private final boolean isVolume;
 
     private DataPoint draggingPoint = null;
@@ -77,6 +78,7 @@ public class VisualCurveWidget extends ClickableWidget {
     }
 
     // 统一格式化逻辑：全部显示 1 位小数（用于刻度显示）
+    @SuppressWarnings("unused")
     private String formatValue(float value) {
         return String.format("%.1f", value);
     }

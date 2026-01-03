@@ -38,20 +38,21 @@ public class ReceiverBlock extends Block {
     @Override
     public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
         if (!world.isClient) {
-            RedstoneManager.addReceiver(pos);
+            RedstoneManager.addReceiver(world, pos);
             // 放置时立即检查全局状态
-            boolean globalPower = RedstoneManager.isGlobalPowered();
+            boolean globalPower = RedstoneManager.isGlobalPowered(world);
             if (state.get(POWERED) != globalPower) {
                 world.setBlockState(pos, state.with(POWERED, globalPower), 3);
             }
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.isOf(newState.getBlock())) {
             if (!world.isClient) {
-                RedstoneManager.removeReceiver(pos);
+                RedstoneManager.removeReceiver(world, pos);
             }
             super.onStateReplaced(state, world, pos, newState, moved);
         }

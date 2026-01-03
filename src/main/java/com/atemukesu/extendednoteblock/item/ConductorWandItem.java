@@ -47,7 +47,8 @@ public class ConductorWandItem extends Item {
         if (stack.getItem() == this) {
             NbtCompound nbt = stack.getOrCreateNbt();
             nbt.put("Pos1", NbtHelper.fromBlockPos(pos));
-            player.sendMessage(Text.literal("§d[Conductor] §fPos1 set at " + pos.toShortString()), true);
+            player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.pos_set", 1, pos.toShortString()),
+                    true);
         }
     }
 
@@ -67,7 +68,8 @@ public class ConductorWandItem extends Item {
         nbt.put("Pos2", NbtHelper.fromBlockPos(pos));
 
         if (world.isClient) {
-            player.sendMessage(Text.literal("§d[Conductor] §fPos2 set at " + pos.toShortString()), true);
+            player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.pos_set", 2, pos.toShortString()),
+                    true);
         }
 
         return ActionResult.SUCCESS;
