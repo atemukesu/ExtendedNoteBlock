@@ -35,11 +35,19 @@ public class SmoothMoveCommand {
                 .then(CommandManager.argument("targets", EntityArgumentType.entities())
                         .then(CommandManager.argument("direction", StringArgumentType.word())
                                 .suggests(DIRECTION_SUGGESTIONS)
-                                .then(CommandManager.argument("speed", FloatArgumentType.floatArg(0.05f, 10.0f))
-                                        .executes(ctx -> executeStart(ctx, -1)) // Optional duration -> -1 (infinite)
+                                .then(CommandManager.argument("speed", FloatArgumentType.floatArg(0.0001f, 10.0f)) // Allow
+                                                                                                                   // smaller
+                                                                                                                   // speeds
+                                        .executes(ctx -> executeStart(ctx, -1, 20.0f)) // Optional duration -> -1
+                                                                                       // (infinite), default TPS 20
                                         .then(CommandManager.argument("duration", IntegerArgumentType.integer(0))
                                                 .executes(ctx -> executeStart(ctx,
-                                                        IntegerArgumentType.getInteger(ctx, "duration"))))))));
+                                                        IntegerArgumentType.getInteger(ctx, "duration"), 20.0f))
+                                                .then(CommandManager
+                                                        .argument("tps", FloatArgumentType.floatArg(0.1f, 100.0f))
+                                                        .executes(ctx -> executeStart(ctx,
+                                                                IntegerArgumentType.getInteger(ctx, "duration"),
+                                                                FloatArgumentType.getFloat(ctx, "tps")))))))));
     }
 
     private static int executeStop(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -56,15 +64,11 @@ public class SmoothMoveCommand {
         if (count > 0) {
             context.getSource().sendFeedback(
                     () -> Text.translatable("commands.extendednoteblock.smoothmove.stop.success", c), true);
-        } else {
-            // Optional: feedback if no one was moving?
-            // context.getSource().sendFeedback(() -> Text.literal("No entities were
-            // moving."), false);
         }
         return count;
     }
 
-    private static int executeStart(CommandContext<ServerCommandSource> context, int duration)
+    private static int executeStart(CommandContext<ServerCommandSource> context, int duration, float tps)
             throws CommandSyntaxException {
         Collection<? extends Entity> targets = EntityArgumentType.getEntities(context, "targets");
         String direction = StringArgumentType.getString(context, "direction");
@@ -81,7 +85,7 @@ public class SmoothMoveCommand {
 
             Vec3d vel = calculateVelocity(entity, direction, speed);
             if (vel != null) {
-                SmoothMoveManager.startMove(entity, vel, duration);
+                SmoothMoveManager.startMove(entity, vel, duration, tps);
                 count++;
             }
         }
