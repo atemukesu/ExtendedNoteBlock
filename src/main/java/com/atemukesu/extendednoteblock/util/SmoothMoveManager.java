@@ -14,7 +14,7 @@ public class SmoothMoveManager {
     private static final List<MoveTask> tasks = new ArrayList<>();
 
     public static void init() {
-        ServerTickEvents.END_SERVER_TICK.register(server -> tick());
+        ServerTickEvents.START_SERVER_TICK.register(server -> tick());
     }
 
     public static void startMove(Entity entity, Vec3d velocity, int duration) {
@@ -74,6 +74,7 @@ public class SmoothMoveManager {
                 return;
             }
 
+            // Apply velocity for this tick
             entity.setVelocity(velocity);
             entity.velocityModified = true;
 

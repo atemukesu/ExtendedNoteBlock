@@ -10,7 +10,7 @@ public class ClientSmoothMoveManager {
     private static int ticksRemaining = 0;
 
     public static void init() {
-        ClientTickEvents.END_CLIENT_TICK.register(ClientSmoothMoveManager::tick);
+        ClientTickEvents.START_CLIENT_TICK.register(ClientSmoothMoveManager::tick);
     }
 
     public static void startMove(Vec3d velocity, int duration) {
