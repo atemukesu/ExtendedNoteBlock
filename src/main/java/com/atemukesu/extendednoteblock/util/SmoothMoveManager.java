@@ -21,18 +21,14 @@ public class SmoothMoveManager {
         // Stop existing task for this entity if any
         tasks.removeIf(t -> t.entity == entity);
         tasks.add(new MoveTask(entity, velocity, duration));
-
-        // Sync to client if player
-        if (entity instanceof ServerPlayerEntity player) {
-            ModMessages.sendSmoothMoveToClient(player, velocity, duration);
-        }
+        // No initial packet here, wait for tick()
     }
 
     public static void stopMove(Entity entity) {
         boolean removed = tasks.removeIf(t -> t.entity == entity);
         if (removed && entity instanceof ServerPlayerEntity player) {
             // Send duration 0 to stop client side
-            ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, 0);
+            ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, 0, player.getPos());
         }
     }
 
@@ -49,11 +45,19 @@ public class SmoothMoveManager {
 
                 // Ensure client stops prediction when server task finishes naturally
                 if (task.entity instanceof ServerPlayerEntity player) {
-                    ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, 0);
+                    ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, 0, player.getPos());
                 }
                 continue;
             }
             task.tick();
+
+            // Send update to client every tick if it's a player
+            if (task.entity instanceof ServerPlayerEntity player) {
+                // Send a small duration (e.g. 2 ticks) to client to keep it smooth but
+                // responsive to server lag
+                // If server lags, client stops after 2 ticks.
+                ModMessages.sendSmoothMoveToClient(player, task.velocity, 2, player.getPos());
+            }
         }
     }
 

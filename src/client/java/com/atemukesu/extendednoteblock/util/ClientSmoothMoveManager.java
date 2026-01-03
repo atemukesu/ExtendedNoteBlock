@@ -13,9 +13,20 @@ public class ClientSmoothMoveManager {
         ClientTickEvents.START_CLIENT_TICK.register(ClientSmoothMoveManager::tick);
     }
 
-    public static void startMove(Vec3d velocity, int duration) {
+    public static void startMove(Vec3d velocity, int duration, Vec3d position) {
         targetVelocity = velocity;
         ticksRemaining = duration;
+
+        // Sync position if player exists
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null) {
+            // Only sync if significant difference to avoid jitter?
+            // Or always sync to enforce server authority strictly?
+            // "update target entity position like extended note block update" implies
+            // strict sync.
+            client.player.setPosition(position);
+            client.player.setVelocity(velocity);
+        }
     }
 
     private static void tick(MinecraftClient client) {
