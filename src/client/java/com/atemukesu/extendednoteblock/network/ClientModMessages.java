@@ -115,8 +115,9 @@ public class ClientModMessages {
                     double px = buf.readDouble();
                     double py = buf.readDouble();
                     double pz = buf.readDouble();
+                    float tps = buf.readFloat();
                     client.execute(() -> com.atemukesu.extendednoteblock.util.ClientSmoothMoveManager
-                            .startMove(new Vec3d(vx, vy, vz), duration, new Vec3d(px, py, pz)));
+                            .startMove(new Vec3d(vx, vy, vz), duration, new Vec3d(px, py, pz), tps));
                 });
     }
 

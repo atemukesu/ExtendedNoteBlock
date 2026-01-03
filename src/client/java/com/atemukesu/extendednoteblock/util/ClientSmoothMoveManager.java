@@ -5,39 +5,56 @@ import net.minecraft.util.math.Vec3d;
 
 /**
  * Client-side smooth move manager.
- * This is now purely server-driven: the server sends position updates every
- * tick,
- * and this class just applies them. No client-side tick logic.
+ * Uses explicit TPS provided by server to scale movement.
  */
 public class ClientSmoothMoveManager {
 
-    /**
-     * Initialize the manager. No longer registers tick events - movement is now
-     * purely driven by server packets.
-     */
+    private static Vec3d targetVelocity = Vec3d.ZERO;
+    private static int ticksRemaining = 0;
+    private static double currentScale = 1.0;
+
     public static void init() {
-        // No tick listener needed anymore.
-        // All movement is server-authoritative via packets.
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.START_CLIENT_TICK
+                .register(ClientSmoothMoveManager::tick);
     }
 
-    /**
-     * Called when a smooth move packet is received from the server.
-     * 
-     * @param velocity The velocity to apply
-     * @param duration Duration remaining (used for stop detection: 0 = stop)
-     * @param position The server-authoritative position to sync to
-     */
-    public static void startMove(Vec3d velocity, int duration, Vec3d position) {
+    public static void startMove(Vec3d velocity, int duration, Vec3d position, float tps) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
+            targetVelocity = velocity;
+            client.player.setPosition(position);
+
             if (duration == 0) {
-                // Stop command - just reset velocity
+                ticksRemaining = 0;
                 client.player.setVelocity(Vec3d.ZERO);
-            } else {
-                // Active movement - sync position and velocity from server
-                client.player.setPosition(position);
-                client.player.setVelocity(velocity);
+                currentScale = 1.0;
+                return;
             }
+
+            // Calculate scale based on provided Server TPS
+            // Client TPS is constant 20.
+            // Scale = ServerTPS / ClientTPS
+            if (tps > 0) {
+                currentScale = tps / 20.0;
+            } else {
+                currentScale = 1.0; // Default if tps invalid
+            }
+
+            // Duration is in Server Ticks.
+            // Client Ticks = Server Ticks * (ClientTPS / ServerTPS) = Server Ticks / Scale
+            if (currentScale > 0) {
+                ticksRemaining = (int) (duration / currentScale);
+            } else {
+                ticksRemaining = duration;
+            }
+        }
+    }
+
+    private static void tick(MinecraftClient client) {
+        if (ticksRemaining > 0 && client.player != null) {
+            // Apply Scaled Velocity every tick
+            client.player.setVelocity(targetVelocity.multiply(currentScale));
+            ticksRemaining--;
         }
     }
 }

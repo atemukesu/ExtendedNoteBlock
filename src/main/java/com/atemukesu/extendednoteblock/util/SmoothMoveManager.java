@@ -17,11 +17,18 @@ public class SmoothMoveManager {
         ServerTickEvents.START_SERVER_TICK.register(server -> tick());
     }
 
-    public static void startMove(Entity entity, Vec3d velocity, int duration) {
+    public static void startMove(Entity entity, Vec3d velocity, int duration, float tps) {
         // Stop existing task for this entity if any
         tasks.removeIf(t -> t.entity == entity);
         tasks.add(new MoveTask(entity, velocity, duration));
-        // No initial packet here, wait for tick()
+
+        if (entity instanceof ServerPlayerEntity player) {
+            ModMessages.sendSmoothMoveToClient(player, velocity, duration, player.getPos(), tps);
+        }
+    }
+
+    public static void startMove(Entity entity, Vec3d velocity, int duration) {
+        startMove(entity, velocity, duration, 20.0f);
     }
 
     public static void stopMove(Entity entity) {
@@ -51,13 +58,8 @@ public class SmoothMoveManager {
             }
             task.tick();
 
-            // Send update to client every tick if it's a player
-            if (task.entity instanceof ServerPlayerEntity player) {
-                // Send a small duration (e.g. 2 ticks) to client to keep it smooth but
-                // responsive to server lag
-                // If server lags, client stops after 2 ticks.
-                ModMessages.sendSmoothMoveToClient(player, task.velocity, 2, player.getPos());
-            }
+            // Reverted: No longer sending updates every tick.
+            // Client handles smoothing based on initial packet and TPS.
         }
     }
 
