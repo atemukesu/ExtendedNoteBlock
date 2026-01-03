@@ -258,10 +258,69 @@ public class AdvancedSettingsScreen extends Screen {
     }
 
     private void loadExistingData() {
-        // 直接加载关键点，不再通过采样还原
-        if (!entity.getVolumePoints().isEmpty()) {
+        boolean isVolumeDefault = true;
+        List<CurvePoint> volPoints = entity.getVolumePoints();
+
+        if (!volPoints.isEmpty()) {
+            if (volPoints.size() == 2) {
+                CurvePoint p1 = volPoints.get(0);
+                CurvePoint p2 = volPoints.get(1);
+                // Check if points are default (0,1) and (1,1)
+                boolean p1Default = Math.abs(p1.time - 0f) < 0.001 && Math.abs(p1.value - 1f) < 0.001;
+                boolean p2Default = Math.abs(p2.time - 1f) < 0.001 && Math.abs(p2.value - 1f) < 0.001;
+                if (!p1Default || !p2Default) {
+                    isVolumeDefault = false;
+                }
+            } else {
+                isVolumeDefault = false;
+            }
+        }
+
+        boolean loadedFromFade = false;
+        int fadeIn = entity.getFadeInTime();
+        int fadeOut = entity.getFadeOutTime();
+        int sustain = entity.getSustain();
+
+        // If Volume is default (empty or 1.0 flat line), try to convert FadeIn/FadeOut
+        if (isVolumeDefault && sustain > 0 && (fadeIn > 0 || fadeOut > 0)) {
             List<VisualCurveWidget.DataPoint> points = new ArrayList<>();
-            for (CurvePoint p : entity.getVolumePoints()) {
+            // Point 0: Start
+            if (fadeIn > 0) {
+                points.add(new VisualCurveWidget.DataPoint(0.0f, 0.0f));
+                float fadeInEnd = Math.min(1.0f, (float) fadeIn / sustain);
+                points.add(new VisualCurveWidget.DataPoint(fadeInEnd, 1.0f));
+            } else {
+                points.add(new VisualCurveWidget.DataPoint(0.0f, 1.0f));
+            }
+
+            // Point 1: End
+            if (fadeOut > 0) {
+                float fadeOutStart = Math.max(0.0f, 1.0f - ((float) fadeOut / sustain));
+                // Check if we need to add a sustain point before fade out starts
+                float lastPointTime = points.get(points.size() - 1).timePercent;
+                if (fadeOutStart > lastPointTime + 0.001f) {
+                    points.add(new VisualCurveWidget.DataPoint(fadeOutStart, 1.0f));
+                } else if (fadeOutStart < lastPointTime) {
+                    // Overlap handling: If fade out starts before fade in ends,
+                    // we might want to just cap it or intersect.
+                    // Simple approach: Adjust last point or add intermediate ?
+                    // For now let's just push it.
+                }
+                points.add(new VisualCurveWidget.DataPoint(1.0f, 0.0f));
+            } else {
+                float lastPointTime = points.get(points.size() - 1).timePercent;
+                if (lastPointTime < 1.0f) {
+                    points.add(new VisualCurveWidget.DataPoint(1.0f, 1.0f));
+                }
+            }
+            volCurve.setPoints(points);
+            loadedFromFade = true;
+        }
+
+        // If not loaded from fade, and we have valid points, load them
+        if (!loadedFromFade && !volPoints.isEmpty()) {
+            List<VisualCurveWidget.DataPoint> points = new ArrayList<>();
+            for (CurvePoint p : volPoints) {
                 points.add(new VisualCurveWidget.DataPoint(p.time, p.value));
             }
             volCurve.setPoints(points);
