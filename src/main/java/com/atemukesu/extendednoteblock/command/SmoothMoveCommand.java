@@ -1,4 +1,3 @@
-
 package com.atemukesu.extendednoteblock.command;
 
 import com.atemukesu.extendednoteblock.util.SmoothMoveManager;
@@ -35,19 +34,12 @@ public class SmoothMoveCommand {
                 .then(CommandManager.argument("targets", EntityArgumentType.entities())
                         .then(CommandManager.argument("direction", StringArgumentType.word())
                                 .suggests(DIRECTION_SUGGESTIONS)
-                                .then(CommandManager.argument("speed", FloatArgumentType.floatArg(0.0001f, 10.0f)) // Allow
-                                                                                                                   // smaller
-                                                                                                                   // speeds
-                                        .executes(ctx -> executeStart(ctx, -1, 20.0f)) // Optional duration -> -1,
-                                                                                       // default TPS 20
-                                        .then(CommandManager.argument("tps", FloatArgumentType.floatArg(0.1f, 100.0f))
-                                                .executes(ctx -> executeStart(ctx, -1,
-                                                        FloatArgumentType.getFloat(ctx, "tps")))
-                                                .then(CommandManager
-                                                        .argument("duration", IntegerArgumentType.integer(0))
-                                                        .executes(ctx -> executeStart(ctx,
-                                                                IntegerArgumentType.getInteger(ctx, "duration"),
-                                                                FloatArgumentType.getFloat(ctx, "tps")))))))));
+                                .then(CommandManager.argument("speed", FloatArgumentType.floatArg(0.0001f, 10.0f))
+                                        .executes(ctx -> executeStart(ctx, -1)) // Optional duration -> -1
+                                        .then(CommandManager
+                                                .argument("duration", IntegerArgumentType.integer(0))
+                                                .executes(ctx -> executeStart(ctx,
+                                                        IntegerArgumentType.getInteger(ctx, "duration"))))))));
     }
 
     private static int executeStop(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -68,7 +60,7 @@ public class SmoothMoveCommand {
         return count;
     }
 
-    private static int executeStart(CommandContext<ServerCommandSource> context, int duration, float tps)
+    private static int executeStart(CommandContext<ServerCommandSource> context, int duration)
             throws CommandSyntaxException {
         Collection<? extends Entity> targets = EntityArgumentType.getEntities(context, "targets");
         String direction = StringArgumentType.getString(context, "direction");
@@ -85,7 +77,7 @@ public class SmoothMoveCommand {
 
             Vec3d vel = calculateVelocity(entity, direction, speed);
             if (vel != null) {
-                SmoothMoveManager.startMove(entity, vel, duration, tps);
+                SmoothMoveManager.startMove(entity, vel, duration);
                 count++;
             }
         }

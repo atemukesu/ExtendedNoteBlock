@@ -491,6 +491,7 @@ public class ConductorScreen extends Screen {
         if (fieldModes.getOrDefault("exprZ", -1) != -1)
             advancedData.putString("ExpressionZ", sz);
 
+        @SuppressWarnings("unused")
         int sustain = 40;
         try {
             sustain = Integer.parseInt(sustainInput.getText());

@@ -24,17 +24,12 @@ public class SmoothMoveManager {
         ServerTickEvents.START_SERVER_TICK.register(SmoothMoveManager::tick);
     }
 
-    public static void startMove(Entity entity, Vec3d velocity, int duration, float tps) {
+    public static void startMove(Entity entity, Vec3d velocity, int duration) {
         // Stop existing task for this entity if any
         tasks.removeIf(t -> t.entity == entity);
 
         // We use the raw velocity (blocks/tick) directly.
-        // The 'tps' argument here is ignored for server-side movement logic.
         tasks.add(new MoveTask(entity, velocity, duration));
-    }
-
-    public static void startMove(Entity entity, Vec3d velocity, int duration) {
-        startMove(entity, velocity, duration, 20.0f);
     }
 
     public static void stopMove(Entity entity) {
@@ -97,10 +92,6 @@ public class SmoothMoveManager {
             // Send packet every tick
             if (task.entity instanceof ServerPlayerEntity player) {
                 // Determine TPS to send.
-                // If the array is not fully populated yet (samples < 10), smoothedTps might be
-                // unstable,
-                // but usually fine after 0.5s.
-                // We send the computed smoothedTps.
                 ModMessages.sendSmoothMoveToClient(player, task.velocity, task.ticksRemaining, player.getPos(),
                         (float) smoothedTps);
             }
