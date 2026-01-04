@@ -44,7 +44,7 @@ public class ClientSmoothMoveManager {
     }
 
     private static void tick(MinecraftClient client) {
-        if (ticksRemaining > 0 && client.player != null && targetPosition != null) {
+        if (ticksRemaining != 0 && client.player != null && targetPosition != null) {
             // Client Logic:
             // 1. Calculate Velocity in Client Ticks (20 TPS)
             // V_client = V_server * (ServerTPS / ClientTPS)
@@ -74,7 +74,11 @@ public class ClientSmoothMoveManager {
             // Important: We don't decrement ticksRemaining here strictly for logic control
             // because the Server sends a new packet EVERY tick to refresh state.
             // But we decrement it to handle case where server packets stop coming (lag).
-            ticksRemaining--;
+            // Only decrement if positive (finite duration). If negative (infinite), stay
+            // negative.
+            if (ticksRemaining > 0) {
+                ticksRemaining--;
+            }
         }
     }
 }
