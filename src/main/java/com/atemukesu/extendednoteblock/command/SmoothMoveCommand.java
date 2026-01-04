@@ -38,13 +38,13 @@ public class SmoothMoveCommand {
                                 .then(CommandManager.argument("speed", FloatArgumentType.floatArg(0.0001f, 10.0f)) // Allow
                                                                                                                    // smaller
                                                                                                                    // speeds
-                                        .executes(ctx -> executeStart(ctx, -1, 20.0f)) // Optional duration -> -1
-                                                                                       // (infinite), default TPS 20
-                                        .then(CommandManager.argument("duration", IntegerArgumentType.integer(0))
-                                                .executes(ctx -> executeStart(ctx,
-                                                        IntegerArgumentType.getInteger(ctx, "duration"), 20.0f))
+                                        .executes(ctx -> executeStart(ctx, -1, 20.0f)) // Optional duration -> -1,
+                                                                                       // default TPS 20
+                                        .then(CommandManager.argument("tps", FloatArgumentType.floatArg(0.1f, 100.0f))
+                                                .executes(ctx -> executeStart(ctx, -1,
+                                                        FloatArgumentType.getFloat(ctx, "tps")))
                                                 .then(CommandManager
-                                                        .argument("tps", FloatArgumentType.floatArg(0.1f, 100.0f))
+                                                        .argument("duration", IntegerArgumentType.integer(0))
                                                         .executes(ctx -> executeStart(ctx,
                                                                 IntegerArgumentType.getInteger(ctx, "duration"),
                                                                 FloatArgumentType.getFloat(ctx, "tps")))))))));
