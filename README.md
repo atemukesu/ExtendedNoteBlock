@@ -1,4 +1,4 @@
-# Extended Note Block (扩展音符盒)
+# Extended Note Block
 
 [![Fabric](https://img.shields.io/badge/modloader-Fabric-blue?style=for-the-badge)](https://fabricmc.net/)
 [![Minecraft](https://img.shields.io/badge/minecraft-1.20.1-green?style=for-the-badge)](https://www.minecraft.net)

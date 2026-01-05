@@ -23,8 +23,10 @@ public class TransmitterBlock extends Block {
     }
 
     @Override
-    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
-        if (world.isClient) return;
+    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos,
+            boolean notify) {
+        if (world.isClient)
+            return;
 
         boolean isBeingPowered = world.isReceivingRedstonePower(pos);
         boolean wasPowered = state.get(POWERED);
@@ -35,6 +37,7 @@ public class TransmitterBlock extends Block {
         }
     }
 
+    @Deprecated
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.isOf(newState.getBlock())) {
