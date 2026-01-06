@@ -108,14 +108,11 @@ public class ClientModMessages {
         // 注册平滑移动包
         ClientPlayNetworking.registerGlobalReceiver(ModMessages.SMOOTH_MOVE_ID,
                 (client, handler, buf, responseSender) -> {
-                    double vx = buf.readDouble();
-                    double vy = buf.readDouble();
-                    double vz = buf.readDouble();
                     double px = buf.readDouble();
                     double py = buf.readDouble();
                     double pz = buf.readDouble();
                     client.execute(() -> com.atemukesu.extendednoteblock.util.ClientSmoothMoveManager
-                            .startMove(new Vec3d(vx, vy, vz), new Vec3d(px, py, pz)));
+                            .startMove(new Vec3d(px, py, pz)));
                 });
     }
 

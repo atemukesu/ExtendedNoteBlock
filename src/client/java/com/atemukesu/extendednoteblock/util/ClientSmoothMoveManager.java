@@ -17,17 +17,13 @@ public class ClientSmoothMoveManager {
      * Called when a SmoothMove packet is received from server.
      * Acts as a direct state update (like ClientSoundManager.updateAdvanced).
      */
-    public static void startMove(Vec3d velocity, Vec3d position) {
+    public static void startMove(Vec3d position) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null) {
-
-            // 1. Server Authoritative Position Update
-            if (position != null) {
-                client.player.setPosition(position);
-            }
-
-            // 2. Velocity Update
-            client.player.setVelocity(velocity);
+        if (client.player != null && position != null) {
+            // Server Authoritative Position Update
+            client.player.setPosition(position);
+            client.player.setVelocity(Vec3d.ZERO); // Optional: clear velocity to prevent client prediction
+                                                   // interference?
         }
     }
 

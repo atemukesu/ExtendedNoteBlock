@@ -22,14 +22,15 @@ public class SmoothMoveManager {
         // Stop existing task for this entity if any
         tasks.removeIf(t -> t.entity == entity);
 
-        // We use the raw velocity (blocks/tick) directly.
+        // Create new task. If duration > 0, we calculate target and use interpolation.
+        // If duration < 0, we use velocity integration.
         tasks.add(new MoveTask(entity, velocity, duration));
     }
 
     public static void stopMove(Entity entity) {
         boolean removed = tasks.removeIf(t -> t.entity == entity);
         if (removed && entity instanceof ServerPlayerEntity player) {
-            ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, player.getPos());
+            ModMessages.sendSmoothMoveToClient(player, player.getPos());
         }
     }
 
@@ -48,7 +49,7 @@ public class SmoothMoveManager {
                 it.remove();
 
                 if (task.entity instanceof ServerPlayerEntity player) {
-                    ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, player.getPos());
+                    ModMessages.sendSmoothMoveToClient(player, player.getPos());
                 }
                 continue;
             }
@@ -57,41 +58,61 @@ public class SmoothMoveManager {
 
             // Send packet every tick
             if (task.entity instanceof ServerPlayerEntity player) {
-                // Send current Velocity and Authoritative Position.
-                ModMessages.sendSmoothMoveToClient(player, task.velocity, player.getPos());
+                // Send Authoritative Position only.
+                ModMessages.sendSmoothMoveToClient(player, player.getPos());
             }
         }
     }
 
     private static class MoveTask {
         final Entity entity;
-        final Vec3d velocity;
-        int ticksRemaining;
+        final Vec3d startPos;
+        final Vec3d targetPos; // Used if duration > 0
+        final Vec3d velocity; // Used if duration < 0 (infinite)
+        final int duration;
+        int ticksPassed;
 
         MoveTask(Entity entity, Vec3d velocity, int duration) {
             this.entity = entity;
+            this.startPos = entity.getPos();
             this.velocity = velocity;
-            this.ticksRemaining = duration;
+            this.duration = duration;
+            this.ticksPassed = 0;
+
+            if (duration > 0) {
+                this.targetPos = startPos.add(velocity.multiply(duration));
+            } else {
+                this.targetPos = null;
+            }
         }
 
         void tick() {
             if (entity.isRemoved()) {
-                ticksRemaining = 0;
+                ticksPassed = duration; // Force finish
                 return;
             }
 
-            // Apply raw velocity (blocks per tick)
-            entity.setPosition(entity.getPos().add(velocity));
-            entity.velocityModified = true;
+            ticksPassed++;
 
-            // duration < 0 means infinite
-            if (ticksRemaining > 0) {
-                ticksRemaining--;
+            Vec3d newPos;
+            if (duration > 0) {
+                // Absolute Interpolation
+                // t goes from 0 to 1
+                double t = (double) ticksPassed / duration;
+                if (t > 1.0)
+                    t = 1.0;
+                newPos = startPos.lerp(targetPos, t);
+            } else {
+                // Infinite movement: integration
+                newPos = entity.getPos().add(velocity);
             }
+
+            entity.setPosition(newPos);
+            entity.velocityModified = true;
         }
 
         boolean isFinished() {
-            return ticksRemaining == 0;
+            return duration > 0 && ticksPassed >= duration;
         }
     }
 }
