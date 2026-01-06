@@ -1,34 +1,64 @@
 package com.atemukesu.extendednoteblock.util;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Vec3d;
 
-/**
- * Client-side smooth move manager.
- * Refactored to match ActiveSoundFader's architecture:
- * 1. Server Authoritative: Strictly applies the Position and Velocity sent by
- * Server.
- * 2. Decoupled from Client Tick: Logic runs on packet receipt (Event Driven),
- * not on local tick loop.
- */
 public class ClientSmoothMoveManager {
 
-    /**
-     * Called when a SmoothMove packet is received from server.
-     * Acts as a direct state update (like ClientSoundManager.updateAdvanced).
-     */
-    public static void startMove(Vec3d position) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null && position != null) {
-            // Server Authoritative Position Update
-            client.player.setPosition(position);
-            client.player.setVelocity(Vec3d.ZERO); // Optional: clear velocity to prevent client prediction
-                                                   // interference?
-        }
-    }
+    private static Vec3d targetPos = null;
+    private static final double SMOOTHING_FACTOR = 0.55;
 
     public static void init() {
-        // No client tick listener needed anymore.
-        // Logic is fully driven by ModMessages.SMOOTH_MOVE_ID packets.
+        ClientTickEvents.END_CLIENT_TICK.register(ClientSmoothMoveManager::tick);
+    }
+
+    /**
+     * 收到服务端包时调用。
+     * isStop=true: 停止移动，释放控制权
+     * isStop=false: 更新目标位置
+     */
+    public static void updateMove(Vec3d position, boolean isStop) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null)
+            return;
+
+        if (isStop) {
+            targetPos = null;
+            // 最后一跳强制同步，确保位置准确
+            if (position != null) {
+                client.player.setPosition(position);
+                client.player.setVelocity(Vec3d.ZERO);
+            }
+            return;
+        }
+
+        if (position == null)
+            return;
+
+        // 如果这是第一次收到，或者距离太远（比如传送），直接瞬移，不要平滑
+        if (targetPos == null || position.squaredDistanceTo(client.player.getPos()) > 100) {
+            client.player.setPosition(position);
+        }
+
+        // 更新目标点
+        targetPos = position;
+    }
+
+    private static void tick(MinecraftClient client) {
+        if (client.player == null || targetPos == null)
+            return;
+
+        Vec3d currentPos = client.player.getPos();
+
+        if (currentPos.squaredDistanceTo(targetPos) < 0.0001) {
+            client.player.setPosition(targetPos);
+            return;
+        }
+
+        Vec3d newPos = currentPos.lerp(targetPos, SMOOTHING_FACTOR);
+
+        client.player.setPosition(newPos);
+        client.player.setVelocity(Vec3d.ZERO);
     }
 }

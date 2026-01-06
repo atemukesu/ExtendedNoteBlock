@@ -19,6 +19,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 /**
  * 负责注册和发送所有网络数据包的中心类。
@@ -209,11 +210,12 @@ public class ModMessages {
         }
     }
 
-    public static void sendSmoothMoveToClient(ServerPlayerEntity player, net.minecraft.util.math.Vec3d position) {
+    public static void sendSmoothMoveToClient(ServerPlayerEntity player, Vec3d pos, boolean isStop) {
         PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeDouble(position.x);
-        buf.writeDouble(position.y);
-        buf.writeDouble(position.z);
+        buf.writeDouble(pos.x);
+        buf.writeDouble(pos.y);
+        buf.writeDouble(pos.z);
+        buf.writeBoolean(isStop);
         ServerPlayNetworking.send(player, SMOOTH_MOVE_ID, buf);
     }
 
