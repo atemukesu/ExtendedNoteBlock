@@ -210,21 +210,14 @@ public class ModMessages {
     }
 
     public static void sendSmoothMoveToClient(ServerPlayerEntity player, net.minecraft.util.math.Vec3d velocity,
-            int duration, net.minecraft.util.math.Vec3d position) {
-        sendSmoothMoveToClient(player, velocity, duration, position, 20.0f);
-    }
-
-    public static void sendSmoothMoveToClient(ServerPlayerEntity player, net.minecraft.util.math.Vec3d velocity,
-            int duration, net.minecraft.util.math.Vec3d position, float tps) {
+            net.minecraft.util.math.Vec3d position) {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeDouble(velocity.x);
         buf.writeDouble(velocity.y);
         buf.writeDouble(velocity.z);
-        buf.writeInt(duration);
         buf.writeDouble(position.x);
         buf.writeDouble(position.y);
         buf.writeDouble(position.z);
-        buf.writeFloat(tps);
         ServerPlayNetworking.send(player, SMOOTH_MOVE_ID, buf);
     }
 

@@ -14,12 +14,6 @@ import java.util.List;
 public class SmoothMoveManager {
     private static final List<MoveTask> tasks = new ArrayList<>();
 
-    // TPS Calculation variables
-    private static long lastTickTime = 0;
-    private static final double[] tickIntervals = new double[10]; // Keep last 10 ticks for smoothing
-    private static int tickIndex = 0;
-    private static double smoothedTps = 20.0;
-
     public static void init() {
         ServerTickEvents.START_SERVER_TICK.register(SmoothMoveManager::tick);
     }
@@ -35,8 +29,7 @@ public class SmoothMoveManager {
     public static void stopMove(Entity entity) {
         boolean removed = tasks.removeIf(t -> t.entity == entity);
         if (removed && entity instanceof ServerPlayerEntity player) {
-            // Send duration 0 to stop client side
-            ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, 0, player.getPos());
+            ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, player.getPos());
         }
     }
 
@@ -45,33 +38,6 @@ public class SmoothMoveManager {
     }
 
     private static void tick(MinecraftServer server) {
-        // 1. Calculate real TPS using rolling average
-        long now = System.nanoTime();
-        if (lastTickTime != 0) {
-            long diff = now - lastTickTime;
-            // Store interval in seconds
-            tickIntervals[tickIndex] = diff / 1_000_000_000.0;
-            tickIndex = (tickIndex + 1) % tickIntervals.length;
-
-            // Calculate average interval
-            double sum = 0;
-            int samples = 0;
-            for (double interval : tickIntervals) {
-                if (interval > 0) {
-                    sum += interval;
-                    samples++;
-                }
-            }
-
-            if (samples > 0) {
-                double avgInterval = sum / samples;
-                if (avgInterval > 0) {
-                    smoothedTps = 1.0 / avgInterval;
-                }
-            }
-        }
-        lastTickTime = now;
-
         if (tasks.isEmpty())
             return;
 
@@ -82,7 +48,7 @@ public class SmoothMoveManager {
                 it.remove();
 
                 if (task.entity instanceof ServerPlayerEntity player) {
-                    ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, 0, player.getPos());
+                    ModMessages.sendSmoothMoveToClient(player, Vec3d.ZERO, player.getPos());
                 }
                 continue;
             }
@@ -91,9 +57,8 @@ public class SmoothMoveManager {
 
             // Send packet every tick
             if (task.entity instanceof ServerPlayerEntity player) {
-                // Determine TPS to send.
-                ModMessages.sendSmoothMoveToClient(player, task.velocity, task.ticksRemaining, player.getPos(),
-                        (float) smoothedTps);
+                // Send current Velocity and Authoritative Position.
+                ModMessages.sendSmoothMoveToClient(player, task.velocity, player.getPos());
             }
         }
     }

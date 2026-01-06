@@ -5,55 +5,34 @@ import net.minecraft.util.math.Vec3d;
 
 /**
  * Client-side smooth move manager.
- * Receives frequent updates from server and interpolates movement.
+ * Refactored to match ActiveSoundFader's architecture:
+ * 1. Server Authoritative: Strictly applies the Position and Velocity sent by
+ * Server.
+ * 2. Decoupled from Client Tick: Logic runs on packet receipt (Event Driven),
+ * not on local tick loop.
  */
 public class ClientSmoothMoveManager {
 
-    private static Vec3d targetVelocity = Vec3d.ZERO; // Server Velocity (Blocks/ServerTicket)
-    private static Vec3d targetPosition = null; // Latest position from server
-    private static int ticksRemaining = 0;
-
-    public static void init() {
-        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.START_CLIENT_TICK
-                .register(ClientSmoothMoveManager::tick);
-    }
-
-    public static void startMove(Vec3d velocity, int duration, Vec3d position, float tps) {
+    /**
+     * Called when a SmoothMove packet is received from server.
+     * Acts as a direct state update (like ClientSoundManager.updateAdvanced).
+     */
+    public static void startMove(Vec3d velocity, Vec3d position) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
-            targetVelocity = velocity;
-            targetPosition = position;
 
-            if (duration == 0) {
-                ticksRemaining = 0;
-                client.player.setVelocity(Vec3d.ZERO);
-                // Snap to final position to ensure sync
-                if (position != null && position != Vec3d.ZERO) {
-                    client.player.setPosition(position);
-                }
-                return;
+            // 1. Server Authoritative Position Update
+            if (position != null) {
+                client.player.setPosition(position);
             }
 
-            ticksRemaining = duration;
+            // 2. Velocity Update
+            client.player.setVelocity(velocity);
         }
     }
 
-    private static void tick(MinecraftClient client) {
-        if (ticksRemaining != 0 && client.player != null && targetPosition != null) {
-            // Client Logic:
-            // Strictly follow server tick velocity without TPS scaling.
-            // If server says 1 block/tick, we move 1 block/tick regardless of actual time
-            // passed.
-            client.player.setVelocity(targetVelocity);
-
-            // Important: We don't decrement ticksRemaining here strictly for logic control
-            // because the Server sends a new packet EVERY tick to refresh state.
-            // But we decrement it to handle case where server packets stop coming (lag).
-            // Only decrement if positive (finite duration). If negative (infinite), stay
-            // negative.
-            if (ticksRemaining > 0) {
-                ticksRemaining--;
-            }
-        }
+    public static void init() {
+        // No client tick listener needed anymore.
+        // Logic is fully driven by ModMessages.SMOOTH_MOVE_ID packets.
     }
 }
