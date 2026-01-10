@@ -30,7 +30,7 @@
 
 ### How to Use
 
-[Click here to view the detailed User Manual](docs/manual_en-us/user_guide.md)
+[Click here to view the detailed User Manual](https://atemukesu.github.io/ExtendedNoteBlock/)
 
 ### Screenshots
 

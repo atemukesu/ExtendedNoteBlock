@@ -27,7 +27,7 @@
 
 ### 如何使用
 
-[点击查看详细使用手册](/docs/manual_zh-cn/user_guide.md)
+[Click here to view the detailed User Manual](https://atemukesu.github.io/ExtendedNoteBlock/zh/)
 
 ### 使用截图
 

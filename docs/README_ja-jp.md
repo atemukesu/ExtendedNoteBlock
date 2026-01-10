@@ -27,7 +27,7 @@
 
 ### 使い方
 
-[詳細なユーザーマニュアルはこちら](/docs/manual_ja-jp/user_guide.md)
+[Click here to view the detailed User Manual](https://atemukesu.github.io/ExtendedNoteBlock/ja/)
 
 ### スクリーンショット
 
