@@ -144,5 +144,11 @@
   "commands.extendednoteblock.smoothmove.success_infinite": "正在向 %2$s 方向无限平滑移动 %1$d 个实体",
   "commands.extendednoteblock.smoothmove.failed": "无法计算实体的移动方向。",
   "commands.extendednoteblock.smoothmove.stop.success": "已停止 %d 个实体的平滑移动。",
-  "commands.extendednoteblock.smoothmove.already_moving": "实体 %s 正在移动中，请先停止它。"
+  "commands.extendednoteblock.smoothmove.already_moving": "实体 %s 正在移动中，请先停止它。",
+  "gui.extendednoteblock.sponsor.button": "赞助",
+  "gui.extendednoteblock.sponsor.title": "赞助",
+  "gui.extendednoteblock.sponsor.description": "Extended Note Block 是一个旨在突破原版音符盒限制的模组。",
+  "gui.extendednoteblock.sponsor.story": "开发这个模组花费了大量的时间和精力。如果您喜欢这个模组，请考虑赞助我，这将是我继续开发的动力！",
+  "gui.extendednoteblock.sponsor.thanks": "感谢您的支持！",
+  "gui.extendednoteblock.sponsor.action": "前往爱发电赞助"
 }

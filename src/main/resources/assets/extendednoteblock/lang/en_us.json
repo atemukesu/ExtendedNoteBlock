@@ -144,5 +144,11 @@
     "commands.extendednoteblock.smoothmove.success_infinite": "Smooth moving %d entities in direction %s (Infinite)",
     "commands.extendednoteblock.smoothmove.failed": "Failed to calculate direction for entities.",
     "commands.extendednoteblock.smoothmove.stop.success": "Stopped smooth move for %d entities.",
-    "commands.extendednoteblock.smoothmove.already_moving": "Entity %s is already moving. Stop it first."
+    "commands.extendednoteblock.smoothmove.already_moving": "Entity %s is already moving. Stop it first.",
+    "gui.extendednoteblock.sponsor.button": "Sponsor",
+    "gui.extendednoteblock.sponsor.title": "Sponsor",
+    "gui.extendednoteblock.sponsor.description": "Extended Note Block is a mod designed to break the limitations of vanilla note blocks.",
+    "gui.extendednoteblock.sponsor.story": "Developing this mod has taken a lot of time and effort. If you like this mod, please consider sponsoring me, it will motivate me to continue development!",
+    "gui.extendednoteblock.sponsor.thanks": "Thank you for your support!",
+    "gui.extendednoteblock.sponsor.action": "Sponsor on Afdian"
 }

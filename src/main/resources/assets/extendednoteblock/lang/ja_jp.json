@@ -144,5 +144,11 @@
     "commands.extendednoteblock.smoothmove.success_infinite": "%2$s の方向に %1$d 体のエンティティを滑らかに移動させています（無限）",
     "commands.extendednoteblock.smoothmove.failed": "エンティティの移動方向を計算できませんでした。",
     "commands.extendednoteblock.smoothmove.stop.success": "%d 体のエンティティの移動を停止しました。",
-    "commands.extendednoteblock.smoothmove.already_moving": "エンティティ %s はすでに移動しています。先に停止してください。"
+    "commands.extendednoteblock.smoothmove.already_moving": "エンティティ %s はすでに移動しています。先に停止してください。",
+    "gui.extendednoteblock.sponsor.button": "スポンサー",
+    "gui.extendednoteblock.sponsor.title": "スポンサー",
+    "gui.extendednoteblock.sponsor.description": "Extended Note Blockは、バニラの音符ブロックの制限を打破することを目的としたModです。",
+    "gui.extendednoteblock.sponsor.story": "このModの開発には多大な時間と労力がかかりました。もし気に入っていただけましたら、スポンサーになっていただけると今後の開発の励みになります！",
+    "gui.extendednoteblock.sponsor.thanks": "ご支援ありがとうございます！",
+    "gui.extendednoteblock.sponsor.action": "Afdianでスポンサーになる"
 }

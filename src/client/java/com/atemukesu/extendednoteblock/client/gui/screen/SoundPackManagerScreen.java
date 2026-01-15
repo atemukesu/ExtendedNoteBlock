@@ -89,6 +89,13 @@ public class SoundPackManagerScreen extends Screen {
                     .findFirst()
                     .ifPresent(entry -> this.listWidget.setSelected(entry, true));
         }
+
+        // 添加赞助按钮
+        this.addDrawableChild(
+                ButtonWidget.builder(Text.translatable("gui.extendednoteblock.sponsor.button"), button -> {
+                    if (this.client != null)
+                        this.client.setScreen(new SponsorScreen(this));
+                }).dimensions(this.width - 105, 6, 100, 20).build());
     }
 
     /**
