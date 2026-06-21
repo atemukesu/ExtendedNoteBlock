@@ -257,45 +257,6 @@ public class ModMessages {
         }
     }
 
-    // 智能 Patch 逻辑：只对顶层数值进行 ADD/MULT 操作
-    private static void applySmartPatch(NbtCompound original, NbtCompound patch, int mode) {
-        for (String key : patch.getKeys()) {
-            // 高级数据：直接覆盖（SET），不参与加减法
-            if (key.equals("AdvancedData")) {
-                original.put("AdvancedData", patch.getCompound("AdvancedData"));
-                continue;
-            }
-
-            // 基础数值逻辑
-            if (original.contains(key, 99)) { // 如果原方块有这个数值型 NBT
-                double oldVal = ((net.minecraft.nbt.AbstractNbtNumber) original.get(key)).doubleValue();
-                double patchVal;
-                try {
-                    patchVal = Double.parseDouble(patch.getString(key));
-                } catch (Exception e) {
-                    continue;
-                }
-
-                double newVal = switch (mode) {
-                    case 1 -> oldVal + patchVal; // ADD
-                    case 2 -> oldVal * patchVal; // MULTIPLY
-                    default -> patchVal; // SET
-                };
-
-                // 保持原数据类型存回
-                if (original.get(key) instanceof net.minecraft.nbt.NbtInt)
-                    original.putInt(key, (int) newVal);
-                else if (original.get(key) instanceof net.minecraft.nbt.NbtFloat)
-                    original.putFloat(key, (float) newVal);
-                else
-                    original.putDouble(key, newVal);
-            } else {
-                // 非数值字段直接覆盖
-                original.put(key, patch.get(key));
-            }
-        }
-    }
-
     // ============== Conductor's Wand Methods ==============
     public static void sendScanRequest(ServerPlayerEntity player, BlockPos pos1, BlockPos pos2) {
         // 直接在服务端逻辑中调用（如果是物品直接触发），或者通过客户端包发送

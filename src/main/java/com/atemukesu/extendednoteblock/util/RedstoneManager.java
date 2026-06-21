@@ -93,6 +93,7 @@ public class RedstoneManager {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private static void updateAllReceivers(ServerWorld world, RedstoneData data) {
         boolean powered = data.activeTransmitters > 0;
         for (BlockPos pos : data.receivers) {

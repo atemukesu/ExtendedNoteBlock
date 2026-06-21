@@ -39,7 +39,9 @@ public class ActiveSoundFader {
 
     // 用于处理由外部事件（如红石信号关闭）触发的强制淡出
     private boolean isFadingOutForced = false;
+    @SuppressWarnings("unused")
     private int forcedFadeOutStartTick = -1;
+    @SuppressWarnings("unused")
     private float volumeOnForcedFadeOut = 1.0f;
 
     public ActiveSoundFader(ServerWorld world, BlockPos pos, UUID soundId, int velocity,
@@ -117,28 +119,6 @@ public class ActiveSoundFader {
         float leftValue = curve.get(idx);
         float rightValue = curve.get(idx + 1);
         return leftValue + nextProgress * (rightValue - leftValue);
-    }
-
-    // 向量插值辅助方法
-    private Vec3d interpolateVec(List<Vec3d> curve, float progress) {
-        if (curve.isEmpty())
-            return Vec3d.ZERO;
-        if (curve.size() == 1)
-            return curve.get(0);
-
-        float floatIdx = progress * (curve.size() - 1);
-        int idx = (int) Math.floor(floatIdx);
-        float nextProgress = floatIdx - idx;
-
-        // 确保索引不越界
-        if (idx >= curve.size() - 1)
-            return curve.get(curve.size() - 1);
-        if (idx < 0)
-            return curve.get(0);
-
-        Vec3d start = curve.get(idx);
-        Vec3d end = curve.get(idx + 1);
-        return start.lerp(end, nextProgress);
     }
 
     public static class SoundState {

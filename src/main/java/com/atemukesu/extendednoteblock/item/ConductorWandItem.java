@@ -1,6 +1,5 @@
 package com.atemukesu.extendednoteblock.item;
 
-import com.atemukesu.extendednoteblock.ExtendedNoteBlock;
 import com.atemukesu.extendednoteblock.network.ModMessages;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.entity.player.PlayerEntity;

@@ -66,3 +66,6 @@ replay_*.log
 *.hprof
 *.jfr
 patch.md
+
+# TRAE
+.trae/

@@ -74,8 +74,6 @@ public class SmoothMoveManager {
         final Vec3d startPos;
         final Vec3d targetPos;
 
-        boolean isFirstTick = true;
-
         int ticksPassed;
 
         MoveTask(Entity entity, Vec3d velocity, int duration) {

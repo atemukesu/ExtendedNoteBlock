@@ -1,7 +1,6 @@
 package com.atemukesu.extendednoteblock.sound;
 
 import com.atemukesu.extendednoteblock.util.CurvePoint;
-import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
 import com.atemukesu.extendednoteblock.network.ModMessages;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;

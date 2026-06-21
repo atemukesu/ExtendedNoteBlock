@@ -12,7 +12,6 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
 import java.util.ArrayList;
@@ -518,27 +517,6 @@ public class ConductorScreen extends Screen {
             return; // Skip if Keep mode
         String val = input.getText();
         updates.add(new ClientModMessages.BulkUpdateEntry(key, mode, val));
-    }
-
-    private NbtList generatePath(String ex, String ey, String ez, int sustain) {
-        NbtList list = new NbtList();
-        try {
-            Expression eX = new ExpressionBuilder(ex.isEmpty() ? "0" : ex).variables("t", "d").build();
-            Expression eY = new ExpressionBuilder(ey.isEmpty() ? "0" : ey).variables("t", "d").build();
-            Expression eZ = new ExpressionBuilder(ez.isEmpty() ? "0" : ez).variables("t", "d").build();
-
-            for (int i = 0; i < sustain; i++) {
-                double t = (double) i / Math.max(1, sustain);
-                NbtCompound pos = new NbtCompound();
-                pos.putDouble("x", eX.setVariable("t", t).setVariable("d", i).evaluate());
-                pos.putDouble("y", eY.setVariable("t", t).setVariable("d", i).evaluate());
-                pos.putDouble("z", eZ.setVariable("t", t).setVariable("d", i).evaluate());
-                list.add(pos);
-            }
-            return list;
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private boolean validateExpressions() {
