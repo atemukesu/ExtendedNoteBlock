@@ -31,11 +31,6 @@ public class TransmitterBlock extends Block {
         boolean isBeingPowered = world.isReceivingRedstonePower(pos);
         boolean wasPowered = state.get(POWERED);
 
-        // #region debug-point D:transmitter-neighbor
-        RedstoneManager.debugLog("D", "TransmitterBlock.neighborUpdate", "neighborUpdate",
-                java.util.Map.of("pos", pos.toShortString(), "isBeingPowered", isBeingPowered, "wasPowered", wasPowered));
-        // #endregion
-
         if (isBeingPowered != wasPowered) {
             world.setBlockState(pos, state.with(POWERED, isBeingPowered), 3);
             RedstoneManager.transmitterChanged(world, pos, isBeingPowered);
@@ -45,11 +40,6 @@ public class TransmitterBlock extends Block {
     @Override
     public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
         if (!world.isClient) {
-            // #region debug-point C:transmitter-added
-            RedstoneManager.debugLog("C", "TransmitterBlock.onBlockAdded", "onBlockAdded",
-                    java.util.Map.of("pos", pos.toShortString(), "statePowered", state.get(POWERED)));
-            // #endregion
-
             RedstoneManager.addTransmitter(world, pos);
             // 检查当前供电状态并同步
             boolean isBeingPowered = world.isReceivingRedstonePower(pos);
@@ -64,11 +54,6 @@ public class TransmitterBlock extends Block {
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.isOf(newState.getBlock())) {
-            // #region debug-point C:transmitter-removed
-            RedstoneManager.debugLog("C", "TransmitterBlock.onStateReplaced", "onStateReplaced",
-                    java.util.Map.of("pos", pos.toShortString(), "statePowered", state.get(POWERED)));
-            // #endregion
-
             if (state.get(POWERED)) {
                 RedstoneManager.transmitterChanged(world, pos, false);
             }
