@@ -152,5 +152,6 @@
     "gui.extendednoteblock.sponsor.thanks": "ご支援ありがとうございます！",
     "gui.extendednoteblock.sponsor.action": "Afdianでスポンサーになる",
     "gui.extendednoteblock.tick_fix.enabled": "§a/tick 修正: ON",
-    "gui.extendednoteblock.tick_fix.disabled": "§7/tick 修正: OFF"
+    "gui.extendednoteblock.tick_fix.disabled": "§7/tick 修正: OFF",
+    "gui.extendednoteblock.tick_fix.restart_required": "§7再起動が必要"
 }

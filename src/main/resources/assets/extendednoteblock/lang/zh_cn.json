@@ -152,5 +152,6 @@
   "gui.extendednoteblock.sponsor.thanks": "感谢您的支持！",
   "gui.extendednoteblock.sponsor.action": "前往爱发电赞助",
   "gui.extendednoteblock.tick_fix.enabled": "§a/tick 修复: 开",
-  "gui.extendednoteblock.tick_fix.disabled": "§7/tick 修复: 关"
+  "gui.extendednoteblock.tick_fix.disabled": "§7/tick 修复: 关",
+  "gui.extendednoteblock.tick_fix.restart_required": "§7需要重启"
 }

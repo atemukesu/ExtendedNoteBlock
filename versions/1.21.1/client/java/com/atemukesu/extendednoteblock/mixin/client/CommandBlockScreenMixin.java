@@ -4,6 +4,7 @@ import com.atemukesu.extendednoteblock.config.TickFixConfig;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.CommandBlockScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,8 +21,18 @@ public abstract class CommandBlockScreenMixin extends Screen {
     @Inject(method = "init", at = @At("TAIL"))
     private void addTickFixToggle(CallbackInfo ci) {
         boolean enabled = TickFixConfig.isEnabled();
-        int btnX = this.width / 2 + 50;
-        int btnY = 4;
+
+        int btnWidth = 100;
+        int btnHeight = 20;
+        int btnX = this.width - btnWidth - 8;
+        int btnY = this.height - btnHeight - 8;
+
+        Text restartText = Text.translatable("gui.extendednoteblock.tick_fix.restart_required");
+        int labelWidth = textRenderer.getWidth(restartText);
+        TextWidget label = new TextWidget(labelWidth, btnHeight, restartText, textRenderer);
+        label.setPosition(btnX - 4 - labelWidth, btnY);
+        addDrawableChild(label);
+
         addDrawableChild(ButtonWidget.builder(
                 Text.translatable("gui.extendednoteblock.tick_fix." + (enabled ? "enabled" : "disabled")),
                 button -> {
@@ -30,7 +41,7 @@ public abstract class CommandBlockScreenMixin extends Screen {
                     button.setMessage(Text.translatable(
                             "gui.extendednoteblock.tick_fix." + (newState ? "enabled" : "disabled")));
                 })
-                .dimensions(btnX, btnY, 100, 20)
+                .dimensions(btnX, btnY, btnWidth, btnHeight)
                 .build());
     }
 }

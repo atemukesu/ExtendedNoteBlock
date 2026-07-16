@@ -152,5 +152,6 @@
     "gui.extendednoteblock.sponsor.thanks": "Thank you for your support!",
     "gui.extendednoteblock.sponsor.action": "Sponsor on Afdian",
     "gui.extendednoteblock.tick_fix.enabled": "§a/tick Fix: ON",
-    "gui.extendednoteblock.tick_fix.disabled": "§7/tick Fix: OFF"
+    "gui.extendednoteblock.tick_fix.disabled": "§7/tick Fix: OFF",
+    "gui.extendednoteblock.tick_fix.restart_required": "§7Requires Restart"
 }
