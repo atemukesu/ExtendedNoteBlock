@@ -388,7 +388,7 @@ public class ConductorScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
+        this.renderBackground(context, mouseX, mouseY, delta);
 
         context.drawCenteredTextWithShadow(textRenderer,
                 Text.translatable("gui.extendednoteblock.conductor.title_styled"), width / 2, 8, 0xFFD4AF37);

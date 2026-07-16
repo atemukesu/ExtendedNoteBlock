@@ -15,7 +15,7 @@ import static com.atemukesu.extendednoteblock.ExtendedNoteBlock.CONDUCTOR_WAND;
 public class ModItemGroups {
 
     public static final ItemGroup EXTENDED_NOTE_BLOCK_GROUP = Registry.register(Registries.ITEM_GROUP,
-            new Identifier(ExtendedNoteBlock.MOD_ID, "extended_note_block_group"),
+            Identifier.of(ExtendedNoteBlock.MOD_ID, "extended_note_block_group"),
             FabricItemGroup.builder()
                     .displayName(Text.translatable("itemgroup.extendednoteblock"))
                     .icon(() -> new ItemStack(ModBlocks.EXTENDED_NOTE_BLOCK))

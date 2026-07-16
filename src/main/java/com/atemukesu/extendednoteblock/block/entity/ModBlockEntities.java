@@ -15,7 +15,7 @@ public class ModBlockEntities {
         ExtendedNoteBlock.LOGGER.info("Registering Block Entities for " + ExtendedNoteBlock.MOD_ID);
         EXTENDED_NOTE_BLOCK_ENTITY = Registry.register(
                 Registries.BLOCK_ENTITY_TYPE,
-                new Identifier(ExtendedNoteBlock.MOD_ID, "extended_note_block_entity"),
+                Identifier.of(ExtendedNoteBlock.MOD_ID, "extended_note_block_entity"),
                 FabricBlockEntityTypeBuilder.<ExtendedNoteBlockEntity>create(
                         ExtendedNoteBlockEntity::new,
                         ModBlocks.EXTENDED_NOTE_BLOCK).build());

@@ -17,7 +17,7 @@ import java.util.List;
 public class EnbBulkEditorWidget extends ElementListWidget<EnbBulkEditorWidget.Entry> {
 
     public EnbBulkEditorWidget(MinecraftClient client, int width, int height, int top, int bottom) {
-        super(client, width, height, top, bottom, 50); // 每行 50 像素高
+        super(client, width, bottom - top, top, 50);
         this.centerListVertically = false;
     }
 
@@ -36,7 +36,7 @@ public class EnbBulkEditorWidget extends ElementListWidget<EnbBulkEditorWidget.E
     }
 
     @Override
-    protected int getScrollbarPositionX() {
+    public int getScrollbarX() {
         return this.width - 15;
     }
 

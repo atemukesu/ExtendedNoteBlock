@@ -33,7 +33,20 @@ public class TransmitterBlock extends Block {
 
         if (isBeingPowered != wasPowered) {
             world.setBlockState(pos, state.with(POWERED, isBeingPowered), 3);
-            RedstoneManager.transmitterChanged(world, isBeingPowered);
+            RedstoneManager.transmitterChanged(world, pos, isBeingPowered);
+        }
+    }
+
+    @Override
+    public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
+        if (!world.isClient) {
+            RedstoneManager.addTransmitter(world, pos);
+            // 检查当前供电状态并同步
+            boolean isBeingPowered = world.isReceivingRedstonePower(pos);
+            if (isBeingPowered != state.get(POWERED)) {
+                world.setBlockState(pos, state.with(POWERED, isBeingPowered), 3);
+                RedstoneManager.transmitterChanged(world, pos, isBeingPowered);
+            }
         }
     }
 
@@ -42,8 +55,9 @@ public class TransmitterBlock extends Block {
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.isOf(newState.getBlock())) {
             if (state.get(POWERED)) {
-                RedstoneManager.transmitterChanged(world, false);
+                RedstoneManager.transmitterChanged(world, pos, false);
             }
+            RedstoneManager.removeTransmitter(world, pos);
             super.onStateReplaced(state, world, pos, newState, moved);
         }
     }

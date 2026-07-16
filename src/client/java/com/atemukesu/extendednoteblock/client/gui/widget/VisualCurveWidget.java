@@ -84,7 +84,7 @@ public class VisualCurveWidget extends ClickableWidget {
     }
 
     @Override
-    protected void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         // 1. 背景与边框
         context.fill(getX(), getY(), getX() + width, getY() + height, 0xEE050505);
         context.drawBorder(getX(), getY(), width, height, 0xFF444444);
@@ -137,16 +137,13 @@ public class VisualCurveWidget extends ClickableWidget {
         RenderSystem.enableBlend();
         RenderSystem.lineWidth(2.5F);
 
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
-        bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
+        BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
 
         for (DataPoint p : points) {
-            bufferBuilder.vertex(matrix, valToScreenX(p.timePercent), valToScreenY(p.value), 0).color(r, g, b, a)
-                    .next();
+            bufferBuilder.vertex(matrix, valToScreenX(p.timePercent), valToScreenY(p.value), 0).color(r, g, b, a);
         }
 
-        tessellator.draw();
+        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
         RenderSystem.disableBlend();
         RenderSystem.lineWidth(1.0F);
     }

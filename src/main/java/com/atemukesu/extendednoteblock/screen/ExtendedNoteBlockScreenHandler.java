@@ -7,6 +7,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -21,6 +23,15 @@ public class ExtendedNoteBlockScreenHandler extends ScreenHandler {
     public final ExtendedNoteBlockEntity blockEntity;
     private final PropertyDelegate propertyDelegate;
     public final BlockPos blockPos;
+
+    public static final PacketCodec<RegistryByteBuf, PacketByteBuf> PACKET_CODEC = PacketCodec.of(
+            ExtendedNoteBlockScreenHandler::writeToBuf,
+            buf -> new PacketByteBuf(buf.readBytes(buf.readableBytes()))
+    );
+
+    private static void writeToBuf(PacketByteBuf data, RegistryByteBuf buf) {
+        buf.writeBytes(data.readBytes(data.readableBytes()));
+    }
 
     public ExtendedNoteBlockScreenHandler(int syncId, PlayerInventory inventory, ExtendedNoteBlockEntity entity,
                                           PropertyDelegate delegate) {

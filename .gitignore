@@ -67,5 +67,10 @@ replay_*.log
 *.jfr
 patch.md
 
+# Debug session files
+debug-*.md
+*.env
+*.ndjson
+
 # TRAE
 .trae/

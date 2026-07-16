@@ -62,7 +62,7 @@ public class EditPackScreen extends Screen {
     protected void init() {
         super.init();
         // 初始化列表控件，占据屏幕中央大部分区域
-        this.listWidget = new SampleListWidget(this.width, this.height, 32, this.height - 80, 28);
+        this.listWidget = new SampleListWidget(this.width, this.height, 32, this.height - 80);
         this.addDrawableChild(this.listWidget);
 
         // 底部按钮区域的Y坐标
@@ -145,7 +145,7 @@ public class EditPackScreen extends Screen {
         if (this.client != null) {
             // 弹出Toast提示用户资源已重载
             this.client.getToastManager().add(new net.minecraft.client.toast.SystemToast(
-                    net.minecraft.client.toast.SystemToast.Type.TUTORIAL_HINT,
+                    net.minecraft.client.toast.SystemToast.Type.PERIODIC_NOTIFICATION,
                     Text.translatable("gui.extendednoteblock.edit_pack.reloaded.title"),
                     Text.translatable("gui.extendednoteblock.edit_pack.reloaded.description")));
             // 触发Minecraft的资源重载
@@ -180,7 +180,7 @@ public class EditPackScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         // 1. 先绘制背景
-        this.renderBackground(context);
+        this.renderBackground(context, mouseX, mouseY, delta);
 
         // 2. 绘制我们的自定义提示文本
         Text hint1 = Text.translatable("gui.extendednoteblock.edit_pack.hint1").formatted(Formatting.YELLOW);
@@ -275,9 +275,8 @@ public class EditPackScreen extends Screen {
      */
     private class SampleListWidget extends ElementListWidget<SampleListWidget.Entry> {
 
-        public SampleListWidget(int width, int height, int top, int bottom, int itemHeight) {
-            super(EditPackScreen.this.client, width, height, top, bottom, itemHeight);
-            this.setRenderBackground(true);
+        public SampleListWidget(int width, int height, int top, int bottom) {
+            super(EditPackScreen.this.client, width, bottom - top, top, 35);
             updateEntries();
         }
 
@@ -305,7 +304,7 @@ public class EditPackScreen extends Screen {
         }
 
         @Override
-        protected int getScrollbarPositionX() {
+        public int getScrollbarX() {
             return (this.width / 2) + (getRowWidth() / 2) + 4;
         }
 
@@ -318,8 +317,8 @@ public class EditPackScreen extends Screen {
                     int mouseX, int mouseY, boolean hovered, float tickDelta) {
                 Text emptyMessage = Text.translatable("gui.extendednoteblock.edit_pack.empty_pack_message")
                         .formatted(Formatting.GRAY);
-                int listHeight = SampleListWidget.this.bottom - SampleListWidget.this.top;
-                int textY = SampleListWidget.this.top + listHeight / 2 - 4; // 垂直居中
+                int listHeight = SampleListWidget.this.getBottom() - SampleListWidget.this.getY();
+                int textY = SampleListWidget.this.getY() + listHeight / 2 - 4; // 垂直居中
                 context.drawCenteredTextWithShadow(textRenderer, emptyMessage, SampleListWidget.this.width / 2, textY,
                         0xFFFFFF);
             }
@@ -380,7 +379,7 @@ public class EditPackScreen extends Screen {
             public SampleEntry(int instrumentId, int note) {
                 this.instrumentId = instrumentId;
                 this.note = note;
-                Identifier soundId = new Identifier(ExtendedNoteBlock.MOD_ID,
+                Identifier soundId = Identifier.of(ExtendedNoteBlock.MOD_ID,
                         "notes." + this.instrumentId + "." + this.note);
                 this.soundEvent = SoundEvent.of(soundId);
 
