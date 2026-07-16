@@ -9,23 +9,34 @@ public class ClientSmoothMoveManager {
     private static Vec3d targetPos = null;
     private static final double SMOOTHING_FACTOR = 0.55;
 
+    // null = 未检测，true = 回放中，false = 正常
+    private static Boolean replayCache = null;
+
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(ClientSmoothMoveManager::tick);
     }
 
-    /**
-     * 收到服务端包时调用。
-     * isStop=true: 停止移动，释放控制权
-     * isStop=false: 更新目标位置
-     */
+    private static boolean isInReplay() {
+        try {
+            Class<?> replayModClass = Class.forName("com.replaymod.replay.ReplayModReplay");
+            Object instance = replayModClass.getField("instance").get(null);
+            if (instance == null) return false;
+            java.lang.reflect.Method getReplayHandler = replayModClass.getMethod("getReplayHandler");
+            return getReplayHandler.invoke(instance) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public static void updateMove(Vec3d position, boolean isStop) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null)
             return;
 
+        // 1. 停止包：结束当前移动会话，重置缓存
         if (isStop) {
             targetPos = null;
-            // 最后一跳强制同步，确保位置准确
+            replayCache = null;
             if (position != null) {
                 client.player.setPosition(position);
                 client.player.setVelocity(Vec3d.ZERO);
@@ -33,15 +44,24 @@ public class ClientSmoothMoveManager {
             return;
         }
 
+        // 2. 移动包：首次收到时检测一次回放状态
+        if (replayCache == null) {
+            replayCache = isInReplay();
+        }
+
+        // 3. 回放中则忽略所有位置同步
+        if (replayCache) {
+            return;
+        }
+
+        // 4. 正常平滑移动
         if (position == null)
             return;
 
-        // 如果这是第一次收到，或者距离太远（比如传送），直接瞬移，不要平滑
         if (targetPos == null || position.squaredDistanceTo(client.player.getPos()) > 100) {
             client.player.setPosition(position);
         }
 
-        // 更新目标点
         targetPos = position;
     }
 
