@@ -48,6 +48,8 @@ Contributions of any kind are welcome! You can participate by:
 * **Submitting Pull Requests**: Fix known issues, optimize code, or improve documentation.
 * **Localization**: Help us translate the mod into more languages.
 
+See the [Development Guide](/docs/DEVELOPMENT.md) for the multi-version project setup, build instructions, and development workflow.
+
 Please ensure your code follows the project's coding style before submitting a PR.
 
 ### License

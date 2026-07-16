@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"package": "com.atemukesu.extendednoteblock.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"ExampleMixin",
+		"CommandNodeAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

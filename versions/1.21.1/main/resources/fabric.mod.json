@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "extendednoteblock",
+	"version": "${version}",
+	"name": "ExtendedNoteBlock",
+	"description": "A Fabric Mod that adds an extended note block to Minecraft.",
+	"authors": [
+		"Atemukesu"
+	],
+	"contact": {
+		"homepage": "https://atemukesu.github.io",
+		"sources": "https://github.com/atemukesu/ExtendedNoteBlock"
+	},
+	"license": "MIT",
+	"icon": "assets/extendednoteblock/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.atemukesu.extendednoteblock.ExtendedNoteBlock"
+		],
+		"client": [
+			"com.atemukesu.extendednoteblock.ExtendedNoteBlockClient"
+		]
+	},
+	"mixins": [
+		"extendednoteblock.mixins.json",
+		{
+			"config": "extendednoteblock.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}

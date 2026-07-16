@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "com.atemukesu.extendednoteblock.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"OptionsScreenMixin",
+		"MinecraftClientMixin",
+		"SoundEventMixin",
+		"SoundSystemMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

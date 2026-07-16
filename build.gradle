@@ -3,6 +3,28 @@ plugins {
 	id 'maven-publish'
 }
 
+// ========== Version Management ==========
+def versionFile = file("gradle/active-version.properties")
+def activeVersion = "1.21.1"
+if (versionFile.exists()) {
+	def vp = new Properties()
+	vp.load(versionFile.newReader())
+	if (vp.activeVersion) activeVersion = vp.activeVersion
+}
+
+def verProps = new Properties()
+verProps.load(file("gradle/versions/${activeVersion}.properties").newReader())
+
+ext.minecraft_version = verProps.minecraft_version
+ext.yarn_mappings = verProps.yarn_mappings
+ext.loader_version = verProps.loader_version
+ext.fabric_version = verProps.fabric_version
+ext.java_version = verProps.java_version
+ext.compatibility_level = verProps.compatibility_level
+
+println "Active version: Minecraft ${minecraft_version}"
+
+// ========== Basic Project Info ==========
 version = project.mod_version
 group = project.maven_group
 
@@ -23,19 +45,27 @@ loom {
 			sourceSet sourceSets.client
 		}
 	}
+}
 
+// Add version-specific source directories
+sourceSets {
+	main {
+		java { srcDir "versions/${activeVersion}/main/java" }
+		resources { srcDir "versions/${activeVersion}/main/resources" }
+	}
+	client {
+		java { srcDir "versions/${activeVersion}/client/java" }
+		resources { srcDir "versions/${activeVersion}/client/resources" }
+	}
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	mappings "net.fabricmc:yarn:${yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${loader_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-	// exp4j - 数学表达式求值库
 	implementation "net.objecthunter:exp4j:0.4.8"
 	include "net.objecthunter:exp4j:0.4.8"
 }
@@ -49,17 +79,14 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 17
+	it.options.release = Integer.parseInt(java_version)
 }
 
 java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.toVersion(java_version as int)
+	targetCompatibility = JavaVersion.toVersion(java_version as int)
 }
 
 jar {
@@ -67,6 +94,131 @@ jar {
 
 	from("LICENSE") {
 		rename { "${it}_${inputs.properties.archivesName}"}
+	}
+}
+
+// ========== Version Switching Tasks ==========
+def writeActiveVersion(String ver) {
+	def f = file("gradle/active-version.properties")
+	f.parentFile.mkdirs()
+	f.text = "activeVersion=${ver}\n"
+	println "Switched to Minecraft ${ver}"
+	println "Run 'gradle runClient' or 'gradle build' directly"
+}
+
+tasks.register("switchTo1201") {
+	group = "version"
+	description = "Switch to Minecraft 1.20.1"
+	doLast { writeActiveVersion("1.20.1") }
+}
+
+tasks.register("switchTo1211") {
+	group = "version"
+	description = "Switch to Minecraft 1.21.1"
+	doLast { writeActiveVersion("1.21.1") }
+}
+
+tasks.register("showActiveVersion") {
+	group = "version"
+	description = "Show current active Minecraft version"
+	doLast {
+		println "Active version: ${minecraft_version} (key: ${activeVersion})"
+		println "Loader: ${loader_version}"
+		println "Fabric API: ${fabric_version}"
+	}
+}
+
+ext.versionKeys = ["1.20.1", "1.21.1"]
+
+tasks.register("makeVersionSpecific") {
+	group = "dev"
+	description = "Move a file from src/ to all version dirs. Usage: -Pfile=<path>"
+	doLast {
+		def filePath = project.findProperty("file")
+		if (!filePath) throw new GradleException("Usage: -Pfile=<path> (e.g. -Pfile=client/java/com/example/Foo.java)")
+
+		def srcFile = file("src/${filePath}")
+		if (!srcFile.exists()) throw new GradleException("File not found: src/${filePath}")
+
+		println "Making '${filePath}' version-specific..."
+		for (v in project.versionKeys) {
+			def dest = file("versions/${v}/${filePath}")
+			dest.parentFile.mkdirs()
+			dest.text = srcFile.text
+			println "  -> versions/${v}/${filePath}"
+		}
+		srcFile.delete()
+		println "Done. Now edit files separately in versions/<ver>/${filePath}"
+	}
+}
+
+	tasks.register("promoteToShared") {
+	group = "dev"
+	description = "Move a file from version dirs to src/ (must be identical). Usage: -Pfile=<path>"
+	doLast {
+		def filePath = project.findProperty("file")
+		if (!filePath) throw new GradleException("Usage: -Pfile=<path>")
+
+		def found = [:]
+		for (v in project.versionKeys) {
+			def f = file("versions/${v}/${filePath}")
+			if (f.exists()) found[v] = f
+		}
+		if (found.isEmpty()) throw new GradleException("File not found in any version dir: ${filePath}")
+
+		def files = found.values() as List
+		def firstStr = files[0].text
+		boolean allSame = files.every { it.text == firstStr }
+
+		if (!allSame) {
+			println "Files differ! Make them identical first:"
+			for (v in project.versionKeys) {
+				def f = found[v]
+				if (f) println "  versions/${v}/${filePath}  (${f.text.length()} chars)"
+			}
+			throw new GradleException("Files differ between versions.")
+		}
+
+		def destSrc = file("src/${filePath}")
+		destSrc.parentFile.mkdirs()
+		destSrc.text = firstStr
+		println "  -> src/${filePath}"
+		for (v in project.versionKeys) {
+			def f = found[v]
+			if (f && f.exists()) { f.delete(); println "  removed versions/${v}/${filePath}" }
+		}
+		println "Promoted to shared: ${filePath}"
+	}
+}
+
+tasks.register("diffVersion") {
+	group = "dev"
+	description = "Show diff between version-specific files. Usage: -Pfile=<path>"
+	doLast {
+		def filePath = project.findProperty("file")
+		if (!filePath) throw new GradleException("Usage: -Pfile=<path>")
+
+		def found = [:]
+		for (v in project.versionKeys) {
+			def f = file("versions/${v}/${filePath}")
+			if (f.exists()) found[v] = f
+		}
+		if (found.size() < 2) {
+			println "File not found in at least 2 versions:"
+			for (v in project.versionKeys) println "  ${v}: ${found[v] ? 'found' : 'not found'}"
+			return
+		}
+		println "=== ${filePath} ==="
+		def lines1 = found["1.20.1"].text.readLines()
+		def lines2 = found["1.21.1"].text.readLines()
+		for (int i = 0; i < Math.max(lines1.size(), lines2.size()); i++) {
+			def l1 = i < lines1.size() ? lines1[i] : null
+			def l2 = i < lines2.size() ? lines2[i] : null
+			if (l1 != l2) {
+				if (l1 != null) println("- ${l1}")
+				if (l2 != null) println("+ ${l2}")
+			}
+		}
 	}
 }
 
@@ -79,11 +231,7 @@ publishing {
 		}
 	}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+
 	}
 }
