@@ -33,8 +33,19 @@ public class ClientSmoothMoveManager {
         if (client.player == null)
             return;
 
-        // 1. 停止包：结束当前移动会话，重置缓存
+        // 1. 已确认在回放中，忽略所有后续包（包括 stop 包）
+        if (replayCache != null && replayCache) {
+            return;
+        }
+
+        // 2. 停止包：在拉回玩家前检查是否中途进入了回放模式
         if (isStop) {
+            if (isInReplay()) {
+                // 回放中：不执行 setPosition 拉回，标记为回放模式
+                targetPos = null;
+                replayCache = true;
+                return;
+            }
             targetPos = null;
             replayCache = null;
             if (position != null) {
@@ -44,17 +55,17 @@ public class ClientSmoothMoveManager {
             return;
         }
 
-        // 2. 移动包：首次收到时检测一次回放状态
+        // 3. 移动包：首次收到时检测一次回放状态
         if (replayCache == null) {
             replayCache = isInReplay();
         }
 
-        // 3. 回放中则忽略所有位置同步
+        // 4. 回放中则忽略所有位置同步
         if (replayCache) {
             return;
         }
 
-        // 4. 正常平滑移动
+        // 5. 正常平滑移动
         if (position == null)
             return;
 

@@ -45,6 +45,10 @@ loom {
 			sourceSet sourceSets.client
 		}
 	}
+
+	runConfigs.all {
+		runDir = "run/${activeVersion}"
+	}
 }
 
 // Add version-specific source directories
