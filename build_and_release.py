@@ -480,13 +480,13 @@ def main():
     if gh_repo and shutil.which("gh"):
         delete_existing_release(gh_repo)
 
-    generate_changelog()
-
     clean_release_dirs()
 
     build_version("1.20.1")
     build_version("1.21.1")
     log_success("所有版本构建完成!")
+
+    generate_changelog()
 
     print("\n==============================================")
     log_info("即将进入发布阶段")
