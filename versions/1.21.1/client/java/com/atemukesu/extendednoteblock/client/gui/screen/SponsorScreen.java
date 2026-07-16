@@ -40,27 +40,22 @@ public class SponsorScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
 
-        // Description
         int y = 50;
         Text description = Text.translatable("gui.extendednoteblock.sponsor.description");
         context.drawCenteredTextWithShadow(this.textRenderer, description, this.width / 2, y, 0xEEEEEE);
         y += 25;
 
-        // Story
         Text story = Text.translatable("gui.extendednoteblock.sponsor.story");
         context.drawTextWrapped(this.textRenderer, story, 20, y, this.width - 40, 0xAAAAAA);
 
         int storyHeight = this.textRenderer.getWrappedLinesHeight(story, this.width - 40);
         y += storyHeight + 30;
 
-        // Thanks
         Text thanks = Text.translatable("gui.extendednoteblock.sponsor.thanks");
         context.drawCenteredTextWithShadow(this.textRenderer, thanks, this.width / 2, y, 0xFFADAA);
-
-        super.render(context, mouseX, mouseY, delta);
     }
 
     @Override

@@ -179,23 +179,16 @@ public class EditPackScreen extends Screen {
      */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // 1. 先绘制背景
-        this.renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
 
-        // 2. 绘制我们的自定义提示文本
         Text hint1 = Text.translatable("gui.extendednoteblock.edit_pack.hint1").formatted(Formatting.YELLOW);
         context.drawCenteredTextWithShadow(textRenderer, hint1, this.width / 2, this.height - 76, 0xFFFFFF);
         Text hint2 = Text.translatable("gui.extendednoteblock.edit_pack.hint2").formatted(Formatting.GRAY);
         context.drawCenteredTextWithShadow(textRenderer, hint2, this.width / 2, this.height - 66, 0xFFFFFF);
 
-        // 3. 绘制列表控件
         this.listWidget.render(context, mouseX, mouseY, delta);
 
-        // 4. 绘制标题
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 13, 0xFFFFFF);
-
-        // 5. 最后调用 super.render() 来绘制所有子控件（如按钮）
-        super.render(context, mouseX, mouseY, delta);
     }
 
     /**

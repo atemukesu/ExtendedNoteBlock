@@ -134,20 +134,17 @@ public class CreatePackScreen extends Screen {
      */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, this.height / 2 - 50,
                 0xFFFFFF);
         context.drawTextWithShadow(this.textRenderer, Text.translatable("gui.extendednoteblock.create_pack.name_field"),
                 this.nameField.getX(), this.nameField.getY() - 12, 0xA0A0A0);
-
-        super.render(context, mouseX, mouseY, delta);
 
         // 当输入不合法时，显示一个提示信息
         String trimmedText = this.nameField.getText().trim();
         if (!trimmedText.isEmpty() && !isNameValid(trimmedText)) {
             Text tooltip = Text.translatable("gui.extendednoteblock.create_pack.invalid_name")
                     .formatted(Formatting.RED);
-            // 将提示信息绘制在输入框下方
             context.drawTextWithShadow(this.textRenderer, tooltip, this.nameField.getX(),
                     this.nameField.getY() + this.nameField.getHeight() + 4, 0xFFFFFF);
         }

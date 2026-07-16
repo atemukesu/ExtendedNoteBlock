@@ -278,7 +278,7 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
      *
      * @param mouseX 鼠标的 X 坐标。
      * @param mouseY 鼠标的 Y 坐标。
-     * @param amount 滚动的量。
+     * @param horizontalAmount 滚动的量。
      * @return 如果事件被某个部件处理，则返回 {@code true}。
      */
     @Override
@@ -632,7 +632,6 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
      */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         // 绘制标题和标签
         context.drawCenteredTextWithShadow(textRenderer, this.title, this.width / 2, 15, 0xFFFFFF);

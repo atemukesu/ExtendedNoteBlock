@@ -150,5 +150,7 @@
     "gui.extendednoteblock.sponsor.description": "Extended Note Block is a mod designed to break the limitations of vanilla note blocks.",
     "gui.extendednoteblock.sponsor.story": "Developing this mod has taken a lot of time and effort. If you like this mod, please consider sponsoring me, it will motivate me to continue development!",
     "gui.extendednoteblock.sponsor.thanks": "Thank you for your support!",
-    "gui.extendednoteblock.sponsor.action": "Sponsor on Afdian"
+    "gui.extendednoteblock.sponsor.action": "Sponsor on Afdian",
+    "gui.extendednoteblock.tick_fix.enabled": "§a/tick Fix: ON",
+    "gui.extendednoteblock.tick_fix.disabled": "§7/tick Fix: OFF"
 }

@@ -118,10 +118,9 @@ public class SoundPackManagerScreen extends Screen {
      */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
         this.listWidget.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 13, 0xFFFFFF);
-        super.render(context, mouseX, mouseY, delta);
     }
 
     /**
@@ -135,7 +134,6 @@ public class SoundPackManagerScreen extends Screen {
          * @param height     列表高度
          * @param top        列表顶部Y坐标
          * @param bottom     列表底部Y坐标
-         * @param itemHeight 每个列表项的高度
          */
         public SoundPackListWidget(int width, int height, int top, int bottom) {
             super(SoundPackManagerScreen.this.client, width, bottom - top, top, 35);

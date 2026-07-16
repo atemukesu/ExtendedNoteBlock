@@ -4,7 +4,8 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ExampleMixin",
-		"CommandNodeAccessor"
+		"CommandNodeAccessor",
+		"TickCommandMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

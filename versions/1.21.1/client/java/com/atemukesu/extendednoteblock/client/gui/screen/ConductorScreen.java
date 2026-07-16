@@ -388,7 +388,7 @@ public class ConductorScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
 
         context.drawCenteredTextWithShadow(textRenderer,
                 Text.translatable("gui.extendednoteblock.conductor.title_styled"), width / 2, 8, 0xFFD4AF37);
@@ -420,15 +420,8 @@ public class ConductorScreen extends Screen {
                 exprZ.getX(), exprZ.getY() - 10, 0xAAAAAA);
 
         // Range Label
-        // Input is at maxX - 52.
-        // Minus btn is at maxX - 74.
-        // Draw label to left of Minus btn.
-        // Minus X is rangeInput.getX() - 22.
-        // Draw label at rangeInput.getX() - 22 - 45 roughly?
         context.drawTextWithShadow(textRenderer, Text.translatable("gui.extendednoteblock.advanced.range_label"),
                 rangeInput.getX() - 22 - 45, rangeInput.getY() + 6, 0xAAAAAA);
-
-        super.render(context, mouseX, mouseY, delta);
 
         drawExpressionError(context, exprX, errorMessageX, errorDisplayTimeX);
         drawExpressionError(context, exprY, errorMessageY, errorDisplayTimeY);

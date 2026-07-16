@@ -150,5 +150,7 @@
     "gui.extendednoteblock.sponsor.description": "Extended Note Blockは、バニラの音符ブロックの制限を打破することを目的としたModです。",
     "gui.extendednoteblock.sponsor.story": "このModの開発には多大な時間と労力がかかりました。もし気に入っていただけましたら、スポンサーになっていただけると今後の開発の励みになります！",
     "gui.extendednoteblock.sponsor.thanks": "ご支援ありがとうございます！",
-    "gui.extendednoteblock.sponsor.action": "Afdianでスポンサーになる"
+    "gui.extendednoteblock.sponsor.action": "Afdianでスポンサーになる",
+    "gui.extendednoteblock.tick_fix.enabled": "§a/tick 修正: ON",
+    "gui.extendednoteblock.tick_fix.disabled": "§7/tick 修正: OFF"
 }

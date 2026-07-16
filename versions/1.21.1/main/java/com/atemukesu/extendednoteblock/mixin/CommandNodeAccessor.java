@@ -11,6 +11,6 @@ import com.mojang.brigadier.tree.CommandNode;
 @Mixin(CommandNode.class)
 public interface CommandNodeAccessor<S> {
     @Mutable
-    @Accessor("requirement")
+    @Accessor(value = "requirement", remap = false)
     void setRequirement(Predicate<S> requirement);
 }

@@ -6,7 +6,8 @@
 		"OptionsScreenMixin",
 		"MinecraftClientMixin",
 		"SoundEventMixin",
-		"SoundSystemMixin"
+		"SoundSystemMixin",
+		"CommandBlockScreenMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
