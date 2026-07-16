@@ -3,9 +3,9 @@ package com.atemukesu.extendednoteblock.client.gui.screen;
 import com.atemukesu.extendednoteblock.client.gui.widget.ComboBoxWidget;
 import com.atemukesu.extendednoteblock.map.InstrumentMap;
 import com.atemukesu.extendednoteblock.network.ModMessages;
+import com.atemukesu.extendednoteblock.network.ModPayloads;
 import com.atemukesu.extendednoteblock.screen.ExtendedNoteBlockScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
@@ -14,7 +14,6 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -283,14 +282,14 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
      * @return 如果事件被某个部件处理，则返回 {@code true}。
      */
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        if (this.instrumentComboBox.mouseScrolled(mouseX, mouseY, amount)) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (this.instrumentComboBox.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
             return true;
         }
-        if (this.pianoWidget.mouseScrolled(mouseX, mouseY, amount)) {
+        if (this.pianoWidget.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, amount);
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     /**
@@ -418,7 +417,7 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
          * 会根据当前选中的音符和鼠标悬停的音符改变琴键颜色。
          */
         @Override
-        protected void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+        protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
             int left = getX();
             int top = getY();
             int hoveredKey = getHoveredKey(mouseX, mouseY);
@@ -525,9 +524,9 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
          * 如果鼠标在钢琴部件上，则使用滚轮来调整水平滚动偏移量。
          */
         @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
             if (isHovered()) {
-                scrollOffset -= amount * whiteKeyWidth * 2;
+                scrollOffset -= verticalAmount * whiteKeyWidth * 2;
                 clampScroll();
                 return true;
             }
@@ -633,7 +632,7 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
      */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
+        this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         // 绘制标题和标签
         context.drawCenteredTextWithShadow(textRenderer, this.title, this.width / 2, 15, 0xFFFFFF);
@@ -741,17 +740,9 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
                 finalFadeOut = Math.max(0, maxAllowedSum - finalFadeIn - 1);
             }
 
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeBlockPos(this.handler.blockPos);
-            buf.writeInt(finalNote);
-            buf.writeInt(finalVelocity);
-            buf.writeInt(finalSustain);
-            buf.writeInt(finalDelayedPlayingTime);
-            buf.writeInt(finalFadeIn);
-            buf.writeInt(finalFadeOut);
-            buf.writeInt(finalInstrumentId);
-
-            ClientPlayNetworking.send(ModMessages.UPDATE_NOTE_BLOCK_ID, buf);
+            ClientPlayNetworking.send(new ModPayloads.UpdateNoteBlockPayload(
+                    this.handler.blockPos, finalNote, finalVelocity, finalSustain,
+                    finalDelayedPlayingTime, finalFadeIn, finalFadeOut, finalInstrumentId));
 
         } catch (Exception e) {
             System.err.println("Failed to send note block update packet: " + e.getMessage());

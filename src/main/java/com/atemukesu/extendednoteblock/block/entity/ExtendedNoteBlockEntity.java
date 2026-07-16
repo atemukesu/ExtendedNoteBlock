@@ -17,11 +17,13 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.util.math.Vec3d;
 import java.util.ArrayList;
 import java.util.List;
+import io.netty.buffer.Unpooled;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -187,13 +189,18 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         }
     }
 
+    // 检查是否有待执行的延迟声音任务
+    public boolean isSoundScheduled() {
+        return this.scheduledSoundFuture != null && !this.scheduledSoundFuture.isDone();
+    }
+
     /**
      * 将方块实体的数据写入 NBT 标签，用于世界保存。
      *
      * @param nbt 要写入的 NBT 化合物。
      */
     @Override
-    protected void writeNbt(NbtCompound nbt) {
+    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         // Legacy data - always written for backward compatibility
         nbt.putInt("note", note);
         nbt.putInt("sustainTime", sustainTime);
@@ -258,7 +265,7 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
             nbt.put("AdvancedData", advancedData);
         }
 
-        super.writeNbt(nbt);
+        super.writeNbt(nbt, lookup);
     }
 
     /**
@@ -267,8 +274,8 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
      * @param nbt 包含数据的 NBT 化合物。
      */
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
+        super.readNbt(nbt, lookup);
         // Read legacy data
         this.note = nbt.getInt("note");
         this.sustainTime = nbt.getInt("sustainTime");
@@ -355,8 +362,8 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
      * @return 包含初始数据的 NBT 化合物。
      */
     @Override
-    public NbtCompound toInitialChunkDataNbt() {
-        return createNbt();
+    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup lookup) {
+        return createNbt(lookup);
     }
 
     /**
@@ -634,16 +641,14 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
 
     /**
      * (由 ExtendedScreenHandlerFactory 接口要求)
-     * 在打开 GUI 屏幕之前，向客户端写入额外的数据。
-     *
-     * 这里我们将方块实体的所有重要数据写入缓冲区，
-     * 客户端的 ScreenHandler 构造函数会读取这些数据，确保 GUI 初始状态正确。
+     * 在打开 GUI 屏幕之前，向客户端发送额外的数据。
      *
      * @param player 打开 GUI 的玩家。
-     * @param buf    要写入的网络数据包缓冲区。
+     * @return 包含所有方块实体数据的 PacketByteBuf。
      */
     @Override
-    public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
+    public PacketByteBuf getScreenOpeningData(ServerPlayerEntity player) {
+        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
         buf.writeBlockPos(this.pos);
         buf.writeInt(this.note);
         buf.writeInt(this.velocity);
@@ -680,5 +685,6 @@ public class ExtendedNoteBlockEntity extends BlockEntity implements ExtendedScre
         buf.writeString(this.storedExpressionX);
         buf.writeString(this.storedExpressionY);
         buf.writeString(this.storedExpressionZ);
+        return buf;
     }
 }

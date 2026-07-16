@@ -72,7 +72,7 @@ public class ClientSoundManager {
             closestNote = note;
         }
 
-        Identifier soundIdentifier = new Identifier("extendednoteblock", "notes." + instrumentId + "." + closestNote);
+        Identifier soundIdentifier = Identifier.of("extendednoteblock", "notes." + instrumentId + "." + closestNote);
         SoundEvent soundEvent = SoundEvent.of(soundIdentifier);
 
         // 如果你也想修复普通模式的潜在问题，也可以在这里应用 MIN_ALIVE_VOLUME
@@ -151,7 +151,7 @@ public class ClientSoundManager {
 
         float finalStartPitch = basePitch * initialPitchMul;
 
-        Identifier soundIdentifier = new Identifier("extendednoteblock", "notes." + instrumentId + "." + closestNote);
+        Identifier soundIdentifier = Identifier.of("extendednoteblock", "notes." + instrumentId + "." + closestNote);
         SoundEvent soundEvent = SoundEvent.of(soundIdentifier);
 
         // [关键修复]：如果初始音量为0，Minecraft会直接丢弃声音实例。

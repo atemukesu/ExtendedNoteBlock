@@ -19,7 +19,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -30,6 +29,7 @@ import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
+import com.mojang.serialization.MapCodec;
 
 public class ExtendedNoteBlockBlock extends BlockWithEntity {
 
@@ -136,7 +136,7 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player,
             BlockHitResult hit) {
         if (!world.isClient) {
             NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
@@ -157,39 +157,51 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
         boolean isPowered = world.isReceivingRedstonePower(pos);
         boolean wasPowered = state.get(Properties.POWERED);
 
-        if (isPowered != wasPowered) {
-            // 只获取一次方块实体
-            if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
+        if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
+            if (isPowered != wasPowered) {
                 if (isPowered) { // 信号从 关 -> 开
                     // 同步方块状态中的音高
                     NotePitch correctPitch = NotePitch.fromMidiNote(blockEntity.getNote());
-                    BlockState newState = state.with(Properties.POWERED, true).with(PITCH, correctPitch);
-                    // 更新方块状态
-                    world.setBlockState(pos, newState, Block.NOTIFY_ALL);
                     int delay = blockEntity.getDelayedPlayingTime();
                     if (delay > 0) {
+                        // 有延迟时：先只更新音高，不亮灯；等延迟结束后再亮灯+发声
+                        BlockState pitchState = state.with(PITCH, correctPitch);
+                        world.setBlockState(pos, pitchState, Block.NOTIFY_ALL);
                         ScheduledFuture<?> future = scheduler.schedule(() -> {
                             // 在执行任务前，再次检查方块是否仍然存在且处于充能状态
                             if (world.getBlockState(pos).isOf(this)
-                                    && world.getBlockState(pos).get(Properties.POWERED)) {
+                                    && world.isReceivingRedstonePower(pos)) {
                                 // 确保在主服务器线程上执行游戏逻辑
-                                world.getServer().execute(() -> triggerNote(world, pos));
+                                world.getServer().execute(() -> {
+                                    // 延迟结束后：亮灯 + 发声
+                                    BlockState lightState = world.getBlockState(pos)
+                                            .with(Properties.POWERED, true);
+                                    world.setBlockState(pos, lightState, Block.NOTIFY_ALL);
+                                    triggerNote(world, pos);
+                                });
                             }
                         }, delay, TimeUnit.MILLISECONDS);
                         // 将 Future 对象存入方块实体中，以便之后可以取消它
                         blockEntity.setScheduledFuture(future);
                     } else {
-                        // 如果没有延迟，立即触发
+                        // 没有延迟，立即亮灯+发声
+                        BlockState newState = state.with(Properties.POWERED, true).with(PITCH, correctPitch);
+                        world.setBlockState(pos, newState, Block.NOTIFY_ALL);
                         this.triggerNote(world, pos);
                     }
                 } else { // 信号从 开 -> 关
-                    // blockEntity.cancelScheduledSound();
-                    // this.stopNote(world, pos);
-                    // 只更新 POWERED 状态
+                    blockEntity.cancelScheduledSound();
+                    this.stopNote(world, pos);
                     world.setBlockState(pos, state.with(Properties.POWERED, false), Block.NOTIFY_ALL);
                 }
-            } else {
-                // 如果没有方块实体，仅更新 POWERED 状态
+            } else if (!isPowered) {
+                // 红石信号为低且 POWERED 未变化（延迟模式下未设置 POWERED=true）
+                // 但可能有待执行的延迟任务需要清理
+                blockEntity.cancelScheduledSound();
+            }
+        } else {
+            // 如果没有方块实体，仅更新 POWERED 状态
+            if (isPowered != wasPowered) {
                 world.setBlockState(pos, state.with(Properties.POWERED, isPowered), Block.NOTIFY_ALL);
             }
         }
@@ -234,6 +246,11 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new ExtendedNoteBlockEntity(pos, state);
+    }
+
+    @Override
+    public MapCodec<ExtendedNoteBlockBlock> getCodec() {
+        return createCodec(ExtendedNoteBlockBlock::new);
     }
 
     @Override

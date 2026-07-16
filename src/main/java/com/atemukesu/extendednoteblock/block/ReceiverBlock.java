@@ -38,6 +38,11 @@ public class ReceiverBlock extends Block {
     @Override
     public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
         if (!world.isClient) {
+            // #region debug-point C:receiver-added
+            RedstoneManager.debugLog("C", "ReceiverBlock.onBlockAdded", "onBlockAdded",
+                    java.util.Map.of("pos", pos.toShortString(), "statePowered", state.get(POWERED)));
+            // #endregion
+
             RedstoneManager.addReceiver(world, pos);
             // 放置时立即检查全局状态
             boolean globalPower = RedstoneManager.isGlobalPowered(world);

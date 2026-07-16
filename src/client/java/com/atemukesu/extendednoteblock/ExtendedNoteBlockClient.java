@@ -1,7 +1,7 @@
 package com.atemukesu.extendednoteblock;
 
 import com.atemukesu.extendednoteblock.item.ConductorWandItem;
-import com.atemukesu.extendednoteblock.network.ModMessages;
+import com.atemukesu.extendednoteblock.network.ModPayloads;
 import com.atemukesu.extendednoteblock.screen.ModScreenHandlers;
 import com.atemukesu.extendednoteblock.sound.SoundPackManager;
 
@@ -9,11 +9,9 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -28,6 +26,9 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.component.ComponentType;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.text.Text;
@@ -66,10 +67,10 @@ public class ExtendedNoteBlockClient implements ClientModInitializer {
 
             while (openWandGuiKey.wasPressed()) {
                 if (client.player.getMainHandStack().getItem() instanceof ConductorWandItem) {
-                    NbtCompound nbt = client.player.getMainHandStack().getNbt();
+                    NbtCompound nbt = client.player.getMainHandStack().getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
                     if (nbt != null && nbt.contains("Pos1") && nbt.contains("Pos2")) {
-                        BlockPos p1 = NbtHelper.toBlockPos(nbt.getCompound("Pos1"));
-                        BlockPos p2 = NbtHelper.toBlockPos(nbt.getCompound("Pos2"));
+                        BlockPos p1 = NbtHelper.toBlockPos(nbt, "Pos1").orElse(null);
+                        BlockPos p2 = NbtHelper.toBlockPos(nbt, "Pos2").orElse(null);
                         ClientModMessages.sendScanRequestToServer(p1, p2);
                     } else {
                         client.player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.incomplete"),
@@ -84,9 +85,11 @@ public class ExtendedNoteBlockClient implements ClientModInitializer {
                     ClientModMessages.sendClearSelectionToServer();
 
                     // 2. Clear Client Side NBT for instant visual feedback
-                    NbtCompound nbt = client.player.getMainHandStack().getOrCreateNbt();
+                    var stack = client.player.getMainHandStack();
+                    NbtCompound nbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
                     nbt.remove("Pos1");
                     nbt.remove("Pos2");
+                    stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
                     client.player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.selection_cleared"),
                             true);
                 }
@@ -115,10 +118,7 @@ public class ExtendedNoteBlockClient implements ClientModInitializer {
         if (stack.getItem() instanceof ConductorWandItem) {
             if (world.isClient) {
                 // 发包给服务端设置 Pos1
-                PacketByteBuf buf = PacketByteBufs.create();
-                buf.writeInt(1); // 1 代表 Pos1
-                buf.writeBlockPos(pos);
-                ClientPlayNetworking.send(ModMessages.SET_WAND_POS_ID, buf);
+                ClientPlayNetworking.send(new ModPayloads.SetWandPosPayload(1, pos));
             }
             // 返回 SUCCESS 会阻止方块被挖掘
             return ActionResult.SUCCESS;

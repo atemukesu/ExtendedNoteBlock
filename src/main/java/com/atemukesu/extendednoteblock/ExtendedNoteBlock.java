@@ -38,12 +38,20 @@ public class ExtendedNoteBlock implements ModInitializer {
 		ModBlockEntities.registerBlockEntities();
 		ModScreenHandlers.registerScreenHandlers();
 		ModMessages.registerC2SPackets();
+		ModMessages.registerS2CPackets();
 		ServerSoundManager.initialize();
 		com.atemukesu.extendednoteblock.command.ModCommands.registerCommands();
 		com.atemukesu.extendednoteblock.util.SmoothMoveManager.init();
 
 		// Register Conductor Wand
-		Registry.register(Registries.ITEM, new Identifier(MOD_ID, "conductor_wand"), CONDUCTOR_WAND);
+		Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "conductor_wand"), CONDUCTOR_WAND);
+
+		// 存档重载后，重新同步所有接收器与发射器的实时状态
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.LOAD.register((server, world) -> {
+			if (!world.isClient) {
+				com.atemukesu.extendednoteblock.util.RedstoneManager.syncOnWorldLoad(world);
+			}
+		});
 
 		LOGGER.info("Extended Note Block Loaded.");
 	}

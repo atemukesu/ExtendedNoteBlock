@@ -56,7 +56,7 @@ public class SoundPackManagerScreen extends Screen {
 
         // 创建并添加音色包列表控件
         int listBottom = this.height - 60;
-        this.listWidget = new SoundPackListWidget(this.width, this.height, 32, listBottom, 36);
+        this.listWidget = new SoundPackListWidget(this.width, this.height, 32, listBottom);
         this.addDrawableChild(this.listWidget);
 
         // 创建并添加 "创建新包" 按钮
@@ -118,7 +118,7 @@ public class SoundPackManagerScreen extends Screen {
      */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
+        this.renderBackground(context, mouseX, mouseY, delta);
         this.listWidget.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 13, 0xFFFFFF);
         super.render(context, mouseX, mouseY, delta);
@@ -137,8 +137,8 @@ public class SoundPackManagerScreen extends Screen {
          * @param bottom     列表底部Y坐标
          * @param itemHeight 每个列表项的高度
          */
-        public SoundPackListWidget(int width, int height, int top, int bottom, int itemHeight) {
-            super(SoundPackManagerScreen.this.client, width, height, top, bottom, itemHeight);
+        public SoundPackListWidget(int width, int height, int top, int bottom) {
+            super(SoundPackManagerScreen.this.client, width, bottom - top, top, 35);
             this.updateEntries();
         }
 
@@ -186,7 +186,7 @@ public class SoundPackManagerScreen extends Screen {
          * @return 滚动条的X坐标。
          */
         @Override
-        protected int getScrollbarPositionX() {
+        public int getScrollbarX() {
             return this.width / 2 + 158;
         }
 

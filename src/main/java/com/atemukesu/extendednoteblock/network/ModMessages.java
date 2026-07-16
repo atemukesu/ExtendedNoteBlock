@@ -1,124 +1,147 @@
 package com.atemukesu.extendednoteblock.network;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import com.atemukesu.extendednoteblock.ExtendedNoteBlock;
+import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
 import com.atemukesu.extendednoteblock.item.ConductorWandItem;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import com.atemukesu.extendednoteblock.map.InstrumentMap;
+import com.atemukesu.extendednoteblock.util.CurvePoint;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
-/**
- * 负责注册和发送所有网络数据包的中心类。
- * <p>
- * 这个类定义了所有数据包的唯一标识符 (Identifier)，并提供了用于注册接收器和发送数据包的静态方法。
- * 它处理服务器与客户端之间的双向通信。
- */
 public class ModMessages {
-    /**
-     * C2S (Client to Server) 数据包ID：用于从客户端GUI更新服务器上的扩展音符盒数据。
-     */
-    public static final Identifier UPDATE_NOTE_BLOCK_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "update_note_block");
 
-    public static final Identifier START_SOUND_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "start_sound");
-    public static final Identifier UPDATE_VOLUME_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "update_volume");
-    public static final Identifier STOP_SOUND_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "stop_sound");
-    public static final Identifier SMOOTH_MOVE_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "smooth_move");
-
-    // ============== Advanced Features v1.4.0 ==============
-    public static final Identifier ADVANCED_UPDATE_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "adv_update");
-
-    // ============== Advanced Settings v1.4.0 ==============
-    public static final Identifier ADVANCED_SETTINGS_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "advanced_settings");
-    public static final Identifier START_ADVANCED_SOUND_ID = new Identifier(ExtendedNoteBlock.MOD_ID,
-            "start_adv_sound");
-
-    // ============== Conductor's Wand ==============
-    public static final Identifier SCAN_REQUEST = new Identifier(ExtendedNoteBlock.MOD_ID, "scan_request");
-    public static final Identifier SCAN_RESPONSE = new Identifier(ExtendedNoteBlock.MOD_ID, "scan_response");
-    public static final Identifier BULK_UPDATE = new Identifier(ExtendedNoteBlock.MOD_ID, "bulk_update");
-    public static final Identifier SET_WAND_POS_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "set_wand_pos");
-
-    /**
-     * 在服务器端注册所有 C2S (客户端到服务器) 数据包的接收器。
-     * 这个方法应该在模组的服务器端初始化阶段被调用。
-     */
     public static void registerC2SPackets() {
-        ServerPlayNetworking.registerGlobalReceiver(UPDATE_NOTE_BLOCK_ID, UpdateNoteBlockPacket::receive);
-        // ============== Advanced Settings v1.4.0 ==============
-        ServerPlayNetworking.registerGlobalReceiver(ADVANCED_SETTINGS_ID, AdvancedSettingsPacket::receive);
-        // ============== Conductor's Wand ==============
-        ServerPlayNetworking.registerGlobalReceiver(SCAN_REQUEST, (server, player, handler, buf, responseSender) -> {
-            BlockPos pos1 = buf.readBlockPos();
-            BlockPos pos2 = buf.readBlockPos();
-            server.execute(() -> handleScanRequest(player, pos1, pos2));
+        // Register C2S payload types
+        PayloadTypeRegistry.playC2S().register(ModPayloads.UpdateNoteBlockPayload.ID, ModPayloads.UpdateNoteBlockPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ModPayloads.AdvancedSettingsPayload.ID, ModPayloads.AdvancedSettingsPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ModPayloads.ScanRequestPayload.ID, ModPayloads.ScanRequestPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ModPayloads.BulkUpdatePayload.ID, ModPayloads.BulkUpdatePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ModPayloads.SetWandPosPayload.ID, ModPayloads.SetWandPosPayload.CODEC);
+
+        // ============== Update Note Block ==============
+        ServerPlayNetworking.registerGlobalReceiver(ModPayloads.UpdateNoteBlockPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                var player = context.player();
+                var world = player.getServerWorld();
+
+                int note = MathHelper.clamp(payload.note(), 0, 127);
+                int velocity = MathHelper.clamp(payload.velocity(), 0, 127);
+                int sustain = MathHelper.clamp(payload.sustain(), 0, 400);
+                int delay = MathHelper.clamp(payload.delay(), 0, 5000);
+                int fadeIn = MathHelper.clamp(payload.fadeIn(), 0, 400);
+                int fadeOut = MathHelper.clamp(payload.fadeOut(), 0, 400);
+                int instrumentId = payload.instrumentId();
+
+                if (world.getBlockEntity(payload.pos()) instanceof ExtendedNoteBlockEntity entity) {
+                    entity.updateValues(note, velocity, sustain, delay, fadeIn, fadeOut);
+                    updateInstrumentBlock(player, world, payload.pos(), instrumentId);
+                } else {
+                    System.err.println("在位置 " + payload.pos() + " 未找到 ExtendedNoteBlockEntity");
+                }
+            });
         });
 
-        ServerPlayNetworking.registerGlobalReceiver(BULK_UPDATE, (server, player, handler, buf, responseSender) -> {
-            BlockPos p1 = buf.readBlockPos();
-            BlockPos p2 = buf.readBlockPos();
-            String targetBlockId = buf.readString();
+        // ============== Advanced Settings v1.4.0 ==============
+        ServerPlayNetworking.registerGlobalReceiver(ModPayloads.AdvancedSettingsPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                var player = context.player();
+                World world = player.getWorld();
+                if (world.getBlockEntity(payload.pos()) instanceof ExtendedNoteBlockEntity entity) {
+                    entity.setVolumePoints(payload.volumePoints());
+                    entity.setPitchBendPoints(payload.pitchBendPoints());
+                    entity.setSoundPath(payload.soundPath());
+                    entity.setStoredExpressionX(payload.storedExprX());
+                    entity.setStoredExpressionY(payload.storedExprY());
+                    entity.setStoredExpressionZ(payload.storedExprZ());
+                }
+            });
+        });
 
-            // Read updates list: {Path, Mode, Value}
-            int updateCount = buf.readInt();
-            final java.util.List<Triple<String, Integer, String>> updates = new java.util.ArrayList<>();
-            for (int i = 0; i < updateCount; i++) {
-                String path = buf.readString();
-                int mode = buf.readInt(); // 0=Set, 1=Add, 2=Mult
-                String value = buf.readString();
-                updates.add(new Triple<>(path, mode, value));
-            }
+        // ============== Conductor's Wand: Scan Request ==============
+        ServerPlayNetworking.registerGlobalReceiver(ModPayloads.ScanRequestPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                var player = context.player();
+                handleScanRequest(player, payload.pos1(), payload.pos2());
+            });
+        });
 
-            // Read Advanced Data Patch (Always Merged/Set)
-            boolean hasAdvanced = buf.readBoolean();
-            final NbtCompound advancedPatch = hasAdvanced ? buf.readNbt() : null;
-
-            server.execute(() -> {
+        // ============== Conductor's Wand: Bulk Update ==============
+        ServerPlayNetworking.registerGlobalReceiver(ModPayloads.BulkUpdatePayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                var player = context.player();
                 ServerWorld world = player.getServerWorld();
-                BlockPos min = new BlockPos(Math.min(p1.getX(), p2.getX()), Math.min(p1.getY(), p2.getY()),
-                        Math.min(p1.getZ(), p2.getZ()));
-                BlockPos max = new BlockPos(Math.max(p1.getX(), p2.getX()), Math.max(p1.getY(), p2.getY()),
-                        Math.max(p1.getZ(), p2.getZ()));
+                BlockPos min = new BlockPos(
+                        Math.min(payload.p1().getX(), payload.p2().getX()),
+                        Math.min(payload.p1().getY(), payload.p2().getY()),
+                        Math.min(payload.p1().getZ(), payload.p2().getZ()));
+                BlockPos max = new BlockPos(
+                        Math.max(payload.p1().getX(), payload.p2().getX()),
+                        Math.max(payload.p1().getY(), payload.p2().getY()),
+                        Math.max(payload.p1().getZ(), payload.p2().getZ()));
+
+                // Parse updatesJson
+                List<Triple<String, Integer, String>> updates = new ArrayList<>();
+                try {
+                    List<Map<String, Object>> updatesList = new Gson().fromJson(
+                            payload.updatesJson(),
+                            new TypeToken<List<Map<String, Object>>>() {}.getType());
+                    for (Map<String, Object> entry : updatesList) {
+                        String path = (String) entry.get("path");
+                        int mode = ((Number) entry.get("mode")).intValue();
+                        String value = (String) entry.get("value");
+                        updates.add(new Triple<>(path, mode, value));
+                    }
+                } catch (Exception e) {
+                    System.err.println("解析 updatesJson 失败: " + e.getMessage());
+                }
+
+                NbtCompound advancedPatch = payload.hasAdvanced() ? payload.advancedPatch() : null;
 
                 int updatedCount = 0;
                 for (BlockPos p : BlockPos.iterate(min, max)) {
-                    // Force load chunk
                     net.minecraft.world.chunk.Chunk chunk = world.getChunk(p.getX() >> 4, p.getZ() >> 4,
                             net.minecraft.world.chunk.ChunkStatus.FULL, true);
                     BlockEntity be = chunk.getBlockEntity(p);
                     if (be != null) {
                         String id = Registries.BLOCK.getId(be.getCachedState().getBlock()).toString();
-                        if (id.equals(targetBlockId)) {
-                            NbtCompound original = be.createNbt();
+                        if (id.equals(payload.targetBlockId())) {
+                            NbtCompound original = be.createNbt(world.getRegistryManager());
 
-                            // 1. Apply Per-Field Updates
                             for (Triple<String, Integer, String> entry : updates) {
                                 com.atemukesu.extendednoteblock.util.NbtPathUtil.apply(original, entry.getA(),
                                         entry.getC(), entry.getB());
                             }
 
-                            // 2. Apply Advanced Data Patch (Recursive Merge)
                             if (advancedPatch != null && !advancedPatch.isEmpty()) {
-                                applyNbtPatch(original, advancedPatch, 0); // Mode 0 = SET/MERGE
+                                applyNbtPatch(original, advancedPatch, 0);
                             }
 
-                            // 3. Recalculate Sound Path if needed (Server Side Calc)
                             recalculateSoundPath(original);
 
-                            be.readNbt(original);
+                            be.read(original, world.getRegistryManager());
                             be.markDirty();
                             world.updateListeners(p, be.getCachedState(), be.getCachedState(), Block.NOTIFY_LISTENERS);
                             updatedCount++;
@@ -130,28 +153,38 @@ public class ModMessages {
             });
         });
 
-        ServerPlayNetworking.registerGlobalReceiver(SET_WAND_POS_ID, (server, player, handler, buf, responseSender) -> {
-            int pointIndex = buf.readInt(); // 1=Pos1, 2=Pos2, 0=Clear
-            // BlockPos is read only if pointIndex != 0
-            BlockPos pos = (pointIndex != 0) ? buf.readBlockPos() : null;
-
-            server.execute(() -> {
+        // ============== Conductor's Wand: Set Wand Pos ==============
+        ServerPlayNetworking.registerGlobalReceiver(ModPayloads.SetWandPosPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                var player = context.player();
                 ItemStack stack = player.getMainHandStack();
                 if (stack.getItem() instanceof ConductorWandItem) {
-                    NbtCompound nbt = stack.getOrCreateNbt();
-                    if (pointIndex == 0) {
+                    NbtCompound nbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
+                    if (payload.pointIndex() == 0) {
                         nbt.remove("Pos1");
                         nbt.remove("Pos2");
+                        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
                         player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.selection_cleared"),
                                 true);
                     } else {
-                        nbt.put("Pos" + pointIndex, NbtHelper.fromBlockPos(pos));
-                        player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.pos_set", pointIndex,
-                                pos.toShortString()), true);
+                        nbt.put("Pos" + payload.pointIndex(), NbtHelper.fromBlockPos(payload.pos()));
+                        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                        player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.pos_set",
+                                payload.pointIndex(), payload.pos().toShortString()), true);
                     }
                 }
             });
         });
+    }
+
+    public static void registerS2CPackets() {
+        PayloadTypeRegistry.playS2C().register(ModPayloads.StartSoundPayload.ID, ModPayloads.StartSoundPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ModPayloads.UpdateVolumePayload.ID, ModPayloads.UpdateVolumePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ModPayloads.StopSoundPayload.ID, ModPayloads.StopSoundPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ModPayloads.SmoothMovePayload.ID, ModPayloads.SmoothMovePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ModPayloads.AdvancedUpdatePayload.ID, ModPayloads.AdvancedUpdatePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ModPayloads.StartAdvancedSoundPayload.ID, ModPayloads.StartAdvancedSoundPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ModPayloads.ScanResponsePayload.ID, ModPayloads.ScanResponsePayload.CODEC);
     }
 
     // Helper class for Triple
@@ -179,59 +212,41 @@ public class ModMessages {
         }
     }
 
+    // ============== S2C Send Methods ==============
+
     public static void sendStartSoundToClients(ServerWorld world, BlockPos pos, UUID soundId, int instrumentId,
             int note, int velocity, float initialVolume) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBlockPos(pos);
-        buf.writeUuid(soundId);
-        buf.writeInt(instrumentId);
-        buf.writeInt(note);
-        buf.writeInt(velocity);
-        buf.writeFloat(initialVolume); // 初始音量
+        var payload = new ModPayloads.StartSoundPayload(pos, soundId, instrumentId, note, velocity, initialVolume);
         for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
-            ServerPlayNetworking.send(player, START_SOUND_ID, buf);
+            ServerPlayNetworking.send(player, payload);
         }
     }
 
     public static void sendUpdateVolumeToClients(ServerWorld world, BlockPos pos, UUID soundId, float volume) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeUuid(soundId);
-        buf.writeFloat(volume); // 使用 writeFloat
+        var payload = new ModPayloads.UpdateVolumePayload(soundId, volume);
         for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
-            ServerPlayNetworking.send(player, UPDATE_VOLUME_ID, buf);
+            ServerPlayNetworking.send(player, payload);
         }
     }
 
     public static void sendStopSoundToClients(ServerWorld world, BlockPos pos, UUID soundId) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeUuid(soundId);
+        var payload = new ModPayloads.StopSoundPayload(soundId);
         for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
-            ServerPlayNetworking.send(player, STOP_SOUND_ID, buf);
+            ServerPlayNetworking.send(player, payload);
         }
     }
 
     public static void sendSmoothMoveToClient(ServerPlayerEntity player, Vec3d pos, boolean isStop) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeDouble(pos.x);
-        buf.writeDouble(pos.y);
-        buf.writeDouble(pos.z);
-        buf.writeBoolean(isStop);
-        ServerPlayNetworking.send(player, SMOOTH_MOVE_ID, buf);
+        var payload = new ModPayloads.SmoothMovePayload(pos.x, pos.y, pos.z, isStop);
+        ServerPlayNetworking.send(player, payload);
     }
 
     // ============== Advanced Features v1.4.0 ==============
     public static void sendAdvancedUpdateToClients(ServerWorld world, BlockPos pos, UUID soundId, float vol,
             float pitchMul, double x, double y, double z) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeUuid(soundId);
-        buf.writeFloat(vol);
-        buf.writeFloat(pitchMul);
-        buf.writeDouble(x);
-        buf.writeDouble(y);
-        buf.writeDouble(z);
-
+        var payload = new ModPayloads.AdvancedUpdatePayload(soundId, vol, pitchMul, x, y, z);
         for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
-            ServerPlayNetworking.send(player, ADVANCED_UPDATE_ID, buf);
+            ServerPlayNetworking.send(player, payload);
         }
     }
 
@@ -239,32 +254,20 @@ public class ModMessages {
             int instrumentId, int note,
             float initialVolume, float initialPitchMul,
             double x, double y, double z) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBlockPos(pos);
-        buf.writeUuid(soundId);
-        buf.writeInt(instrumentId);
-        buf.writeInt(note);
-
-        // 关键数据：t=0 时的状态
-        buf.writeFloat(initialVolume);
-        buf.writeFloat(initialPitchMul);
-        buf.writeDouble(x);
-        buf.writeDouble(y);
-        buf.writeDouble(z);
-
+        var payload = new ModPayloads.StartAdvancedSoundPayload(pos, soundId, instrumentId, note,
+                initialVolume, initialPitchMul, x, y, z);
         for (ServerPlayerEntity player : PlayerLookup.tracking(world, pos)) {
-            ServerPlayNetworking.send(player, START_ADVANCED_SOUND_ID, buf);
+            ServerPlayNetworking.send(player, payload);
         }
     }
 
     // ============== Conductor's Wand Methods ==============
     public static void sendScanRequest(ServerPlayerEntity player, BlockPos pos1, BlockPos pos2) {
-        // 直接在服务端逻辑中调用（如果是物品直接触发），或者通过客户端包发送
-        // 这里假设物品逻辑在服务端运行，直接调用处理逻辑
         handleScanRequest(player, pos1, pos2);
     }
 
-    // 实际处理扫描逻辑
+    // ============== Internal Handler Methods ==============
+
     private static void handleScanRequest(ServerPlayerEntity player, BlockPos pos1, BlockPos pos2) {
         ServerWorld world = player.getServerWorld();
         BlockPos min = new BlockPos(
@@ -275,11 +278,9 @@ public class ModMessages {
                 Math.max(pos1.getX(), pos2.getX()),
                 Math.max(pos1.getY(), pos2.getY()),
                 Math.max(pos1.getZ(), pos2.getZ()));
-        // 防止过大选区卡死 -> 修改为 INT_MAX (实际上不做限制，或者限制很大)
         long volume = (long) (max.getX() - min.getX() + 1) * (max.getY() - min.getY() + 1)
                 * (max.getZ() - min.getZ() + 1);
         if (volume > Integer.MAX_VALUE) {
-            // 即使是 MAX_VALUE 也是非常大的，这里只是形式上的检查
             player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.selection_too_large", volume), false);
             return;
         }
@@ -289,10 +290,7 @@ public class ModMessages {
         java.util.Map<String, Integer> countMap = new java.util.HashMap<>();
         java.util.Map<String, NbtCompound> sampleNbtMap = new java.util.HashMap<>();
 
-        // 遍历区域
         for (BlockPos p : BlockPos.iterate(min, max)) {
-            // 强制加载区块以获取BlockEntity
-            // data processing in unloaded chunks
             net.minecraft.world.chunk.Chunk chunk = world.getChunk(p.getX() >> 4, p.getZ() >> 4,
                     net.minecraft.world.chunk.ChunkStatus.FULL, true);
             BlockEntity be = chunk.getBlockEntity(p);
@@ -301,9 +299,8 @@ public class ModMessages {
                 String id = Registries.BLOCK.getId(be.getCachedState().getBlock()).toString();
                 countMap.put(id, countMap.getOrDefault(id, 0) + 1);
 
-                // 只保存第一个遇到的该类型NBT作为样本用于GUI生成
                 if (!sampleNbtMap.containsKey(id)) {
-                    sampleNbtMap.put(id, be.createNbt());
+                    sampleNbtMap.put(id, be.createNbt(world.getRegistryManager()));
                 }
             }
         }
@@ -313,25 +310,36 @@ public class ModMessages {
             return;
         }
 
-        // 发送结果回客户端
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBlockPos(min);
-        buf.writeBlockPos(max);
-        buf.writeInt(countMap.size());
+        // Send scan response using CustomPayload
+        var payload = new ModPayloads.ScanResponsePayload(min, max, countMap, sampleNbtMap);
+        ServerPlayNetworking.send(player, payload);
+    }
 
-        for (String id : countMap.keySet()) {
-            buf.writeString(id);
-            buf.writeInt(countMap.get(id));
-            buf.writeNbt(sampleNbtMap.get(id));
+    private static void updateInstrumentBlock(ServerPlayerEntity player, World world, BlockPos noteBlockPos,
+            int instrumentId) {
+        BlockPos belowPos = noteBlockPos.down();
+        String targetBlockId = InstrumentMap.GM_INSTRUMENT_TO_BLOCK.get(instrumentId);
+
+        if (targetBlockId != null) {
+            try {
+                Block targetBlock = Registries.BLOCK.get(Identifier.of(targetBlockId));
+                Block currentBlockBelow = world.getBlockState(belowPos).getBlock();
+
+                if (targetBlock != null && targetBlock != currentBlockBelow) {
+                    if (world.canPlayerModifyAt(player, belowPos)) {
+                        world.setBlockState(belowPos, targetBlock.getDefaultState(), 3);
+                    } else {
+                        player.sendMessage(Text.translatable("gui.extendednoteblock.error.no_permission"), true);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("更换方块时出错: " + e.getMessage());
+            }
         }
-
-        ServerPlayNetworking.send(player, SCAN_RESPONSE, buf);
     }
 
     private static void applyNbtPatch(NbtCompound original, NbtCompound patch, int op) {
-        // 递归合并 NBT
         for (String key : patch.getKeys()) {
-            // 特殊处理 ExtendedNoteBlock 的 AdvancedData
             if (key.equals("AdvancedData") && patch.contains("AdvancedData", 10)) {
                 if (!original.contains("AdvancedData", 10))
                     original.put("AdvancedData", new NbtCompound());
@@ -339,9 +347,7 @@ public class ModMessages {
                 continue;
             }
 
-            // 处理普通数值操作
-            if (op != 0 && original.contains(key, 99) && patch.contains(key, 99)) { // 99 = Any Number
-                // 获取旧值和新值
+            if (op != 0 && original.contains(key, 99) && patch.contains(key, 99)) {
                 net.minecraft.nbt.NbtElement originalElement = original.get(key);
                 net.minecraft.nbt.NbtElement patchElement = patch.get(key);
 
@@ -352,15 +358,14 @@ public class ModMessages {
                     double newVal = oldVal;
 
                     if (op == 1)
-                        newVal += patchVal; // ADD
+                        newVal += patchVal;
                     else if (op == 2)
-                        newVal *= patchVal; // MULTIPLY
+                        newVal *= patchVal;
                     else if (op == 3)
-                        newVal /= (patchVal == 0 ? 1 : patchVal); // DIVIDE
+                        newVal /= (patchVal == 0 ? 1 : patchVal);
                     else if (op == 4)
-                        newVal -= patchVal; // SUBTRACT
+                        newVal -= patchVal;
 
-                    // 根据原类型存回
                     if (originalElement instanceof net.minecraft.nbt.NbtInt)
                         original.putInt(key, (int) newVal);
                     else if (originalElement instanceof net.minecraft.nbt.NbtFloat)
@@ -374,16 +379,14 @@ public class ModMessages {
                     else if (originalElement instanceof net.minecraft.nbt.NbtLong)
                         original.putLong(key, (long) newVal);
                     else
-                        original.putInt(key, (int) newVal); // fallback
+                        original.putInt(key, (int) newVal);
                 }
             } else {
-                // Set / Replace mode or non-numeric
                 original.put(key, patch.get(key));
             }
         }
     }
 
-    // Server-side path generation
     private static void recalculateSoundPath(NbtCompound nbt) {
         if (!nbt.contains("AdvancedData", 10))
             return;
@@ -398,7 +401,7 @@ public class ModMessages {
 
         int sustain = nbt.getInt("sustainTime");
         if (sustain <= 0)
-            sustain = 40; // Default fallback
+            sustain = 40;
 
         net.minecraft.nbt.NbtList list = new net.minecraft.nbt.NbtList();
         try {
@@ -419,8 +422,7 @@ public class ModMessages {
             }
             adv.put("SoundPath", list);
         } catch (Exception e) {
-            // If failed, maybe clear path? Or keep old?
-            // Keep old or do nothing to allow user to fix expression
+            // If failed, keep old path
         }
     }
 }

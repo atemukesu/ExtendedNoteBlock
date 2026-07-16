@@ -46,7 +46,7 @@ public class ComboBoxWidget<T> extends ClickableWidget {
     }
 
     @Override
-    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         MinecraftClient client = MinecraftClient.getInstance();
         TextRenderer textRenderer = client.textRenderer;
         int mainBoxColor = this.isHovered() && !this.isOpen ? COLOR_MAIN_BOX_HOVERED : COLOR_MAIN_BOX_NORMAL;
@@ -195,7 +195,7 @@ public class ComboBoxWidget<T> extends ClickableWidget {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (this.isOpen && this.options.size() > MAX_VISIBLE_ITEMS) {
             int dropdownY = this.getY() + this.getHeight();
             int visibleItems = Math.min(MAX_VISIBLE_ITEMS, this.options.size());
@@ -204,7 +204,7 @@ public class ComboBoxWidget<T> extends ClickableWidget {
                     mouseY >= dropdownY && mouseY < dropdownY + dropdownHeight) {
                 int totalContentHeight = this.options.size() * ITEM_HEIGHT;
                 int maxScroll = Math.max(0, totalContentHeight - (visibleItems * ITEM_HEIGHT));
-                this.scroll = MathHelper.clamp(this.scroll - (int) (amount * ITEM_HEIGHT), 0, maxScroll);
+                this.scroll = MathHelper.clamp(this.scroll - (int) (verticalAmount * ITEM_HEIGHT), 0, maxScroll);
                 return true;
             }
         }

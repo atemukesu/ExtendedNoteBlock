@@ -399,8 +399,8 @@ public class SoundPackManager {
         if (!Files.exists(mcMetaPath)) {
             JsonObject packMeta = new JsonObject();
             JsonObject packSection = new JsonObject();
-            // pack_format 15 对应 1.20.1。可以根据目标Minecraft版本调整。
-            packSection.addProperty("pack_format", 15);
+            // pack_format 34 对应 1.21.1。可以根据目标Minecraft版本调整。
+            packSection.addProperty("pack_format", 34);
             packSection.addProperty("description", "Generated sounds for Extended Note Block Mod");
             packMeta.add("pack", packSection);
 
@@ -562,12 +562,9 @@ public class SoundPackManager {
                 return;
 
             resourcePackManager.scanPacks();
-            Collection<String> allAvailablePackNames = resourcePackManager.getProfiles()
-                    .stream()
-                    .map(ResourcePackProfile::getName)
-                    .collect(Collectors.toSet());
+            Collection<String> allAvailablePackNames = resourcePackManager.getIds();
 
-            List<String> originalEnabledPacks = new ArrayList<>(resourcePackManager.getEnabledNames());
+            List<String> originalEnabledPacks = new ArrayList<>(resourcePackManager.getEnabledIds());
 
             // 1. 从当前启用的资源包列表中，移除所有由本Mod管理的音色包。
             Set<String> allMyPackResourceNames = getAvailablePacks().stream()
@@ -674,7 +671,7 @@ public class SoundPackManager {
         String expectedResourceName = RESOURCE_PACK_PREFIX + activePackId;
 
         ResourcePackManager resourcePackManager = client.getResourcePackManager();
-        Collection<String> enabledPacks = resourcePackManager.getEnabledNames();
+        Collection<String> enabledPacks = resourcePackManager.getEnabledIds();
 
         return enabledPacks.contains(expectedResourceName);
     }
