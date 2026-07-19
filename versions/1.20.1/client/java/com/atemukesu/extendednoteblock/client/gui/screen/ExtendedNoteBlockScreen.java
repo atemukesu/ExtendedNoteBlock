@@ -13,6 +13,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.client.sound.SoundManager;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
@@ -618,6 +619,12 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
         public void appendClickableNarrations(NarrationMessageBuilder builder) {
             this.appendDefaultNarrations(builder);
         }
+
+        @Override
+        public void playDownSound(SoundManager soundManager) {
+            // 静音，不播放任何声音
+        }
+
     }
 
     /**

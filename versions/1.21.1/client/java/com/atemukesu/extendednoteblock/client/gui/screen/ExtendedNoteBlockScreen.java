@@ -2,7 +2,6 @@ package com.atemukesu.extendednoteblock.client.gui.screen;
 
 import com.atemukesu.extendednoteblock.client.gui.widget.ComboBoxWidget;
 import com.atemukesu.extendednoteblock.map.InstrumentMap;
-import com.atemukesu.extendednoteblock.network.ModMessages;
 import com.atemukesu.extendednoteblock.network.ModPayloads;
 import com.atemukesu.extendednoteblock.screen.ExtendedNoteBlockScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -12,9 +11,8 @@ import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.client.sound.SoundManager;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
@@ -616,6 +614,11 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
         @Override
         public void appendClickableNarrations(NarrationMessageBuilder builder) {
             this.appendDefaultNarrations(builder);
+        }
+
+        @Override
+        public void playDownSound(SoundManager soundManager) {
+            // 不播放任何声音
         }
     }
 
