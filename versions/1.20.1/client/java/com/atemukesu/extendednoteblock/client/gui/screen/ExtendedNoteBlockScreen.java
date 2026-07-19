@@ -514,7 +514,6 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
             int key = getHoveredKey(mouseX, mouseY);
             if (key != -1) {
                 onNoteSelect.accept(key);
-                client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 ExtendedNoteBlockScreen.this.close(); // 选中音符后直接关闭界面
             }
         }
