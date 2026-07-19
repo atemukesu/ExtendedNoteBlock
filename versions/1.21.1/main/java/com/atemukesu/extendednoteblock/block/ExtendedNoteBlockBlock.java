@@ -159,45 +159,37 @@ public class ExtendedNoteBlockBlock extends BlockWithEntity {
 
         if (world.getBlockEntity(pos) instanceof ExtendedNoteBlockEntity blockEntity) {
             if (isPowered != wasPowered) {
-                if (isPowered) { // 信号从 关 -> 开
-                    // 同步方块状态中的音高
+                if (isPowered) { // 上升沿
+                    // 1. 立即更新 POWERED 和 PITCH
                     NotePitch correctPitch = NotePitch.fromMidiNote(blockEntity.getNote());
+                    BlockState newState = state.with(Properties.POWERED, true).with(PITCH, correctPitch);
+                    world.setBlockState(pos, newState, Block.NOTIFY_ALL);
+
+                    // 2. 取消之前的延迟任务（如果有）
+                    blockEntity.cancelScheduledSound();
+
+                    // 3. 提交新的延迟发声任务（仅发声，不再设置 POWERED）
                     int delay = blockEntity.getDelayedPlayingTime();
                     if (delay > 0) {
-                        // 有延迟时：先只更新音高，不亮灯；等延迟结束后再亮灯+发声
-                        BlockState pitchState = state.with(PITCH, correctPitch);
-                        world.setBlockState(pos, pitchState, Block.NOTIFY_ALL);
                         ScheduledFuture<?> future = scheduler.schedule(() -> {
-                            // 在执行任务前，再次检查方块是否仍然存在且处于充能状态
-                            if (world.getBlockState(pos).isOf(this)
-                                    && world.isReceivingRedstonePower(pos)) {
-                                // 确保在主服务器线程上执行游戏逻辑
-                                world.getServer().execute(() -> {
-                                    // 延迟结束后：亮灯 + 发声
-                                    BlockState lightState = world.getBlockState(pos)
-                                            .with(Properties.POWERED, true);
-                                    world.setBlockState(pos, lightState, Block.NOTIFY_ALL);
+                            world.getServer().execute(() -> {
+                                // 再次检查信号是否仍然为高，防止误触发
+                                if (world.isReceivingRedstonePower(pos) &&
+                                        world.getBlockState(pos).get(Properties.POWERED)) {
                                     triggerNote(world, pos);
-                                });
-                            }
+                                }
+                            });
                         }, delay, TimeUnit.MILLISECONDS);
-                        // 将 Future 对象存入方块实体中，以便之后可以取消它
                         blockEntity.setScheduledFuture(future);
                     } else {
-                        // 没有延迟，立即亮灯+发声
-                        BlockState newState = state.with(Properties.POWERED, true).with(PITCH, correctPitch);
-                        world.setBlockState(pos, newState, Block.NOTIFY_ALL);
-                        this.triggerNote(world, pos);
+                        // 无延迟则立即发声
+                        triggerNote(world, pos);
                     }
-                } else { // 信号从 开 -> 关
+                } else { // 下降沿
                     blockEntity.cancelScheduledSound();
-                    this.stopNote(world, pos);
+                    stopNote(world, pos);
                     world.setBlockState(pos, state.with(Properties.POWERED, false), Block.NOTIFY_ALL);
                 }
-            } else if (!isPowered) {
-                // 红石信号为低且 POWERED 未变化（延迟模式下未设置 POWERED=true）
-                // 但可能有待执行的延迟任务需要清理
-                blockEntity.cancelScheduledSound();
             }
         } else {
             // 如果没有方块实体，仅更新 POWERED 状态
