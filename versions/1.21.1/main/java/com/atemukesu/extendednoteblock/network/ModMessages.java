@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.atemukesu.extendednoteblock.block.ExtendedNoteBlockBlock;
 import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
 import com.atemukesu.extendednoteblock.item.ConductorWandItem;
 import com.atemukesu.extendednoteblock.map.InstrumentMap;
@@ -40,6 +41,7 @@ public class ModMessages {
         PayloadTypeRegistry.playC2S().register(ModPayloads.ScanRequestPayload.ID, ModPayloads.ScanRequestPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ModPayloads.BulkUpdatePayload.ID, ModPayloads.BulkUpdatePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ModPayloads.SetWandPosPayload.ID, ModPayloads.SetWandPosPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ModPayloads.PreviewRequestPayload.ID, ModPayloads.PreviewRequestPayload.CODEC);
 
         // ============== Update Note Block ==============
         ServerPlayNetworking.registerGlobalReceiver(ModPayloads.UpdateNoteBlockPayload.ID, (payload, context) -> {
@@ -172,6 +174,18 @@ public class ModMessages {
                         player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.pos_set",
                                 payload.pointIndex(), payload.pos().toShortString()), true);
                     }
+                }
+            });
+        });
+
+        // ============== Preview Request ==============
+        ServerPlayNetworking.registerGlobalReceiver(ModPayloads.PreviewRequestPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                var player = context.player();
+                var world = player.getWorld();
+                var pos = payload.pos();
+                if (world.getBlockState(pos).getBlock() instanceof ExtendedNoteBlockBlock block) {
+                    block.previewNote(world, pos);
                 }
             });
         });

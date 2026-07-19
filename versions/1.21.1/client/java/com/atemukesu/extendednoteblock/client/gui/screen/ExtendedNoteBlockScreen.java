@@ -756,6 +756,7 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
     @Override
     public void close() {
         sendUpdatePacket();
+        ClientPlayNetworking.send(new ModPayloads.PreviewRequestPayload(this.handler.blockPos));
         super.close();
     }
 

@@ -3,6 +3,7 @@ package com.atemukesu.extendednoteblock.network;
 import java.util.UUID;
 
 import com.atemukesu.extendednoteblock.ExtendedNoteBlock;
+import com.atemukesu.extendednoteblock.block.ExtendedNoteBlockBlock;
 import com.atemukesu.extendednoteblock.item.ConductorWandItem;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -51,6 +52,9 @@ public class ModMessages {
     public static final Identifier SCAN_RESPONSE = new Identifier(ExtendedNoteBlock.MOD_ID, "scan_response");
     public static final Identifier BULK_UPDATE = new Identifier(ExtendedNoteBlock.MOD_ID, "bulk_update");
     public static final Identifier SET_WAND_POS_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "set_wand_pos");
+
+    // ============== Preview Request ==============
+    public static final Identifier PREVIEW_REQUEST_ID = new Identifier(ExtendedNoteBlock.MOD_ID, "preview_request");
 
     /**
      * 在服务器端注册所有 C2S (客户端到服务器) 数据包的接收器。
@@ -149,6 +153,17 @@ public class ModMessages {
                         player.sendMessage(Text.translatable("gui.extendednoteblock.conductor.pos_set", pointIndex,
                                 pos.toShortString()), true);
                     }
+                }
+            });
+        });
+
+        // ============== Preview Request ==============
+        ServerPlayNetworking.registerGlobalReceiver(PREVIEW_REQUEST_ID, (server, player, handler, buf, responseSender) -> {
+            BlockPos pos = buf.readBlockPos();
+            server.execute(() -> {
+                World world = player.getWorld();
+                if (world.getBlockState(pos).getBlock() instanceof ExtendedNoteBlockBlock block) {
+                    block.previewNote(world, pos);
                 }
             });
         });

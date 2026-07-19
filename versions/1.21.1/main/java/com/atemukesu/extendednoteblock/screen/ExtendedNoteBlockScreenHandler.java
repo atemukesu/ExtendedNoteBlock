@@ -1,6 +1,5 @@
 package com.atemukesu.extendednoteblock.screen;
 
-import com.atemukesu.extendednoteblock.block.ExtendedNoteBlockBlock;
 import com.atemukesu.extendednoteblock.block.entity.ExtendedNoteBlockEntity;
 import com.atemukesu.extendednoteblock.util.CurvePoint;
 import net.minecraft.entity.player.PlayerEntity;
@@ -14,7 +13,6 @@ import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.block.Block;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -140,11 +138,6 @@ public class ExtendedNoteBlockScreenHandler extends ScreenHandler {
     @Override
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
-        if (!this.blockEntity.getWorld().isClient()) {
-            Block block = this.blockEntity.getCachedState().getBlock();
-            if (block instanceof ExtendedNoteBlockBlock noteBlock) {
-                noteBlock.previewNote(this.blockEntity.getWorld(), this.blockPos);
-            }
-        }
+        // previewNote 已由 PreviewRequestPayload 处理，此处不再重复触发
     }
 }

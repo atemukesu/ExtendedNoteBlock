@@ -196,6 +196,20 @@ public class ModPayloads {
         }
     }
 
+    // ============== C2S - Preview Request ==============
+    public record PreviewRequestPayload(BlockPos pos) implements CustomPayload {
+        public static final Id<PreviewRequestPayload> ID = new Id<>(Identifier.of("extendednoteblock", "preview_request"));
+        public static final PacketCodec<PacketByteBuf, PreviewRequestPayload> CODEC = PacketCodec.of(
+                (payload, buf) -> buf.writeBlockPos(payload.pos),
+                buf -> new PreviewRequestPayload(buf.readBlockPos())
+        );
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+    }
+
     // ============== S2C Payloads ==============
 
     // S2C - Start Sound

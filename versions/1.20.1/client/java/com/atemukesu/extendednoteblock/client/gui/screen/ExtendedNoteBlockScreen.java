@@ -766,6 +766,9 @@ public class ExtendedNoteBlockScreen extends HandledScreen<ExtendedNoteBlockScre
     @Override
     public void close() {
         sendUpdatePacket();
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeBlockPos(this.handler.blockPos);
+        ClientPlayNetworking.send(ModMessages.PREVIEW_REQUEST_ID, buf);
         super.close();
     }
 
