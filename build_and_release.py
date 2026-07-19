@@ -5,8 +5,8 @@
 ExtendedNoteBlock Mod 自动化构建与发布脚本
 
 功能:
-  1. 自动编译 1.20.1 和 1.21.1 双版本 (switchTo + clean build)
-  2. 自动生成 Markdown 更新日志 (基于 git log)
+  1. 自动编译 1.20.1 和 1.21.1 双版本 (switchTo + build)
+  2. 自动生成 Markdown 更新日志 (基于 git log 并过滤 PR)
   3. 可选：上传构建产物到 GitHub Releases [Y/n]
   4. 可选：上传构建产物到 Modrinth [Y/n]
 
@@ -205,12 +205,21 @@ def delete_existing_release(gh_repo):
     run_cmd(["git", "fetch", "origin", "--prune", "--prune-tags"], check=False)
     run_cmd(["git", "tag", "-d", release_tag], check=False)
 
-def generate_changelog():
+def get_prev_tag_info():
+    """获取上一个版本标签及其发布日期（用于过滤 PR）"""
+    prev_tag = run_cmd(["git", "describe", "--tags", "--abbrev=0"], capture=True, check=False)
+    prev_date = None
+    if prev_tag:
+        # 获取标签的提交日期（短格式 YYYY-MM-DD）
+        date_output = run_cmd(["git", "log", "-1", "--format=%cd", "--date=short", prev_tag], capture=True, check=False)
+        if date_output:
+            prev_date = date_output.strip()
+    return prev_tag, prev_date
+
+def generate_changelog(prev_tag=None, prev_date=None):
     log_info("生成更新日志...")
     changelog_file = os.path.join("build", "changelog.md")
     manual_changelog = os.path.join("build", "manual_changelog.md")
-
-    prev_tag = run_cmd(["git", "describe", "--tags", "--abbrev=0"], capture=True, check=False)
 
     with open(changelog_file, "w", encoding='utf-8') as f:
         f.write(f"# ExtendedNoteBlock v{VERSION}\n\n")
@@ -235,13 +244,28 @@ def generate_changelog():
             commits = run_cmd(["git", "log", "--pretty=format:- %s (%h)", "-20"], capture=True, check=False)
         f.write((commits if commits else "- 暂无详细记录") + "\n\n")
 
-        if shutil.which("gh"):
-            prs = run_cmd(["gh", "pr", "list", "--state", "merged", "--limit", "10",
-                           "--json", "number,title,author",
-                           "--template", "{{range .}}- #{{.number}} {{.title}} (by @{{.author.login}})\n{{end}}"],
-                           capture=True, check=False)
+        # 获取合并的 PR（基于上一版本的发布日期过滤）
+        if shutil.which("gh") and prev_date:
+            # 使用 --merged-after 过滤，确保只包含自上一版本以来的 PR
+            prs = run_cmd([
+                "gh", "pr", "list", "--state", "merged", "--limit", "100",
+                "--merged-after", prev_date,
+                "--json", "number,title,author",
+                "--template", "{{range .}}- #{{.number}} {{.title}} (by @{{.author.login}})\n{{end}}"
+            ], capture=True, check=False)
             if prs.strip():
                 f.write("### 合并的 Pull Requests\n")
+                f.write(prs + "\n\n")
+        elif shutil.which("gh"):
+            # 如果没有 prev_date（首次发布），则列出最近合并的 PR（但这种情况通常不需要过滤）
+            log_warning("无法获取上一版本日期，将列出最近合并的 PR（可能包含旧 PR）")
+            prs = run_cmd([
+                "gh", "pr", "list", "--state", "merged", "--limit", "10",
+                "--json", "number,title,author",
+                "--template", "{{range .}}- #{{.number}} {{.title}} (by @{{.author.login}})\n{{end}}"
+            ], capture=True, check=False)
+            if prs.strip():
+                f.write("### 合并的 Pull Requests（最近 10 个）\n")
                 f.write(prs + "\n\n")
 
         f.write("""---
@@ -270,8 +294,9 @@ def generate_changelog():
 
 本次发布包含以下文件：
 """)
+        # 从 ./release 目录读取构建产物
         for mc_ver in ["1.20.1", "1.21.1"]:
-            jar_file = os.path.join("build", "releases", mc_ver, f"extendednoteblock-{VERSION}+{mc_ver}.jar")
+            jar_file = os.path.join("release", mc_ver, f"extendednoteblock-{VERSION}+{mc_ver}.jar")
             if os.path.isfile(jar_file):
                 size = get_file_size_mb(jar_file)
                 md5 = get_file_hash(jar_file, 'md5')
@@ -327,9 +352,19 @@ def upload_to_github():
 
     upload_files = []
     for mc_ver in ["1.20.1", "1.21.1"]:
-        jar_path = os.path.join("build", "releases", mc_ver, f"extendednoteblock-{VERSION}+{mc_ver}.jar")
+        jar_path = os.path.join("release", mc_ver, f"extendednoteblock-{VERSION}+{mc_ver}.jar")
         if os.path.isfile(jar_path):
             upload_files.append(jar_path)
+        else:
+            log_warning(f"未找到文件：{jar_path}")
+
+    if not upload_files:
+        log_error("没有找到任何可上传的 JAR 文件，请检查构建是否成功。")
+        return
+
+    log_info(f"准备上传 {len(upload_files)} 个文件：")
+    for f in upload_files:
+        log_info(f"  - {f}")
 
     cmd = ["gh", "release", "create", release_tag,
            "--repo", gh_repo,
@@ -375,8 +410,9 @@ def upload_to_modrinth():
         changelog_content = f.read()
 
     for mc_version in ["1.20.1", "1.21.1"]:
-        jar_file = os.path.join("build", "releases", mc_version, f"extendednoteblock-{VERSION}+{mc_version}.jar")
+        jar_file = os.path.join("release", mc_version, f"extendednoteblock-{VERSION}+{mc_version}.jar")
         if not os.path.isfile(jar_file):
+            log_warning(f"未找到 {mc_version} 的 JAR 文件，跳过上传。")
             continue
 
         version_name = f"{VERSION}-{mc_version}"
@@ -396,11 +432,12 @@ def upload_to_modrinth():
             "game_versions": [mc_version],
             "featured": True,
             "status": "listed",
-            "description": f"ExtendedNoteBlock {VERSION} for Minecraft {mc_version}",
             "changelog": changelog_content
         }
 
         json_str = json.dumps(data_dict, separators=(',', ':'))
+
+        log_info(f"发送的 JSON: {json_str}")
 
         curl_cmd = [
             "curl", "-s", "-X", "POST",
@@ -419,6 +456,7 @@ def upload_to_modrinth():
             else:
                 error_msg = resp_json.get("error", resp_json.get("message", "未知错误"))
                 log_error(f"上传失败：{error_msg}")
+                log_info(response)
         except json.JSONDecodeError:
             log_error(f"解析 Modrinth 响应失败: {response}")
 
@@ -431,35 +469,36 @@ def build_version(mc_version):
     log_info(f"切换至 {mc_version}...")
     run_cmd([GRADLEW, switch_task])
 
-    log_info("清理旧的构建文件...")
-    run_cmd([GRADLEW, "clean"])
-
+    # 注意：不再执行 clean，因为 clean 会删除 build/libs，但我们保留 build/libs 并不影响 release 目录
+    # 但为了确保干净构建，可以在切换后执行 build，它会自动处理增量编译
     log_info(f"编译 {mc_version} 版本...")
     run_cmd([GRADLEW, "build"])
 
-    out_dir = os.path.join("build", "releases", mc_version)
+    # 复制产物到 ./release/${mc_version}/
+    out_dir = os.path.join("release", mc_version)
     os.makedirs(out_dir, exist_ok=True)
 
     source_dir = os.path.join("build", "libs")
     jars_found = glob.glob(os.path.join(source_dir, "*.jar"))
-    jars_found = [j for j in jars_found if not j.endswith("-sources.jar")]
-
-    for jar in jars_found:
-        jar_name = f"extendednoteblock-{VERSION}+{mc_version}.jar"
-        target_jar = os.path.join(out_dir, jar_name)
-        shutil.copy(jar, target_jar)
-        log_success(f"{mc_version} 版本构建成功: {jar_name}")
+    jars_found = [j for j in jars_found if not j.endswith("-sources.jar") and not j.endswith("-dev.jar")]
 
     if not jars_found:
         log_error(f"{mc_version} 版本构建失败，找不到预期的 JAR 文件")
         sys.exit(1)
 
+    # 取第一个普通 JAR（通常只有一个）
+    jar = jars_found[0]
+    jar_name = f"extendednoteblock-{VERSION}+{mc_version}.jar"
+    target_jar = os.path.join(out_dir, jar_name)
+    shutil.copy(jar, target_jar)
+    log_success(f"{mc_version} 版本构建成功: {jar_name}")
+
 def clean_release_dirs():
-    releases_dir = os.path.join("build", "releases")
-    if os.path.exists(releases_dir):
-        log_info(f"正在清理旧的发布目录: {releases_dir}")
-        shutil.rmtree(releases_dir)
-    os.makedirs(releases_dir, exist_ok=True)
+    release_dir = "release"
+    if os.path.exists(release_dir):
+        log_info(f"正在清理旧的发布目录: {release_dir}")
+        shutil.rmtree(release_dir)
+    os.makedirs(release_dir, exist_ok=True)
     log_success("发布目录已清空，准备构建新版本")
 
 # --------------------------- 主程序 ----------------------------------------
@@ -474,19 +513,28 @@ def main():
     get_version_info()
     collect_changelog_input()
 
-    # 先删除旧 Release，再生成 CHANGELOG
-    # 这样 git describe --tags 能正确指向上一版本
+    # 获取上一版本信息（用于 changelog 和 PR 过滤）
+    prev_tag, prev_date = get_prev_tag_info()
+    if prev_tag:
+        log_info(f"上一版本标签: {prev_tag}, 发布日期: {prev_date}")
+    else:
+        log_info("未找到上一版本标签，将作为首次发布处理")
+
     gh_repo = get_gh_repo()
     if gh_repo and shutil.which("gh"):
+        # 先获取信息，再删除旧 Release（删除会影响 git describe）
         delete_existing_release(gh_repo)
 
+    # 清空 release 目录准备新构建
     clean_release_dirs()
 
+    # 构建两个版本（构建过程中不再执行 clean）
     build_version("1.20.1")
     build_version("1.21.1")
     log_success("所有版本构建完成!")
 
-    generate_changelog()
+    # 生成更新日志（传入 prev_tag 和 prev_date）
+    generate_changelog(prev_tag, prev_date)
 
     print("\n==============================================")
     log_info("即将进入发布阶段")
@@ -503,7 +551,7 @@ def main():
     if gh_repo:
         print(f"  - GitHub Releases: https://github.com/{gh_repo}/releases/tag/v{VERSION}")
 
-    print(f"  - 本地文件：{os.path.abspath(os.path.join('build', 'releases'))}")
+    print(f"  - 本地文件：{os.path.abspath('release')}")
     print(f"  - 更新日志：{os.path.abspath(os.path.join('build', 'changelog.md'))}\n")
 
 if __name__ == "__main__":
